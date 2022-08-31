@@ -1,4 +1,4 @@
-## Welcome to my Profile!  <img align="right" src="https://github.com/Aditdoshi1/Aditdoshi1/blob/main/Assets/piggy.jpg" width="250px">
+## Welcome to my Profile!  <img align="right" src="https://github.com/Aditdoshi1/Aditdoshi1/blob/main/Assets/piggy.jpg" width="150px">
 <a href="mailto:ad8343@rit.edu">
   <img align="left" alt="Adit's LinkedIN" width="22px" src="https://upload.wikimedia.org/wikipedia/commons/7/7e/Gmail_icon_%282020%29.svg" />
 </a>
