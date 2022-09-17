@@ -14,7 +14,7 @@
 
 I am Adit Doshi. I am pursuing Masters in Information Technolgy & Analytics at Rochester Institute of Technology(RIT).
 
-<img src="https://img.icons8.com/color/24/000000/find-matching-job.png" width="22px"/> Currently I'm looking for Internship/Co-op Opprtunities in Data Analytics/ Data Engineer Roles/ Software Engineer.
+<img src="https://img.icons8.com/color/24/000000/find-matching-job.png" width="22px"/> Currently I'm looking for Internship/Co-op Opprtunities in Data Analytics/ Software Engineer/ Data Engineer Roles.
   ![Alt text](https://i.gifer.com/Dtf.gif?)
 - 💼 Do reach out to me if you would need anything.
 - 💬 Ask me about anything, I am happy to help.
