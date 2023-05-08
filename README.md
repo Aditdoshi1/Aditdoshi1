@@ -5,7 +5,7 @@
 
 <a href="https://www.linkedin.com/in/adit-doshi1/">
   <img align="left" alt="Adit Doshi's LinkedIN" width="22px" src="https://raw.githubusercontent.com/peterthehan/peterthehan/master/assets/linkedin.svg" />
-</a>
+</a><br/>
 
 
 <br />
