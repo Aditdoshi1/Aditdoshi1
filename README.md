@@ -4,12 +4,9 @@
 </div>
 
 ## Connect with Me </t> </t> </t>
-    <a href="mailto:ad8343@rit.edu">
-        <img alt="Adit's Email" src="https://upload.wikimedia.org/wikipedia/commons/7/7e/Gmail_icon_%282020%29.svg" width="40px" style="margin: 5px" />
-    </a>
-    <a href="https://www.linkedin.com/in/adit-doshi1/">
-      <img alt="Adit Doshi's LinkedIn" src="https://img.icons8.com/fluency/48/000000/linkedin.png" width="40px" style="margin: 5px" />
-    </a>
+[![Linkedin Badge](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white&&link=https://www.linkedin.com/in/adit-doshi1)](https://www.linkedin.com/in/adit-doshi1)
+[![Gmail Badge](https://img.shields.io/badge/Gmail-D14836?style=for-the-badge&logo=gmail&logoColor=white&link=mailto:ad8343@rit.edu)](mailto:ad8343@rit.edu)
+
 
 ## About Me</br>
 My name is Adit Doshi. I hold a Master's degree in Information Technology & Analytics from the Rochester Institute of Technology (RIT), specializing in areas that intersect data analytics, software engineering, and data engineering. </br>
