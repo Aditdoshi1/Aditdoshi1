@@ -1,0 +1,140 @@
+# WhatsApp Spam Guard
+
+Automatically moderates WhatsApp groups by detecting spam links and keywords, deleting offending messages, and removing the sender.
+
+## What it does
+
+- Monitors configured WhatsApp groups where your account is an admin
+- Detects **links** and **custom keywords** in incoming messages
+- Deletes spam messages for everyone
+- Removes the sender from the group
+- Skips group admins (never auto-kicks admins)
+- Supports **dry-run mode** for safe testing
+
+## Important warnings
+
+- Uses the unofficial [`whatsapp-web.js`](https://github.com/pedroslopez/whatsapp-web.js) library (WhatsApp Web automation)
+- This may violate WhatsApp Terms of Service and carries a small account-ban risk
+- The bot must stay online 24/7 to work (local PC or VPS)
+- Your logged-in WhatsApp account must be a **group admin** in every monitored group
+
+## Quick start
+
+### 1. Install dependencies
+
+```bash
+cd whatsapp-spam-guard
+npm install
+```
+
+### 2. Configure groups and keywords
+
+Edit [`config.yaml`](config.yaml):
+
+```yaml
+monitoredGroups:
+  - name: "My Public Group 1"
+  # - id: "120363123456789012@g.us"
+
+rules:
+  blockAllLinks: true
+  keywords:
+    - "crypto"
+    - "earn money"
+  matchMode: "any"   # "any" = link OR keyword; "all" = both required
+  dryRun: true       # start with true for testing
+
+moderation:
+  deleteMessage: true
+  removeUser: true
+  logToFile: true
+  rateLimitSeconds: 60
+```
+
+### 3. Start the bot
+
+```bash
+npm start
+```
+
+Scan the QR code with WhatsApp on your phone:
+
+**WhatsApp → Linked Devices → Link a Device**
+
+### 4. Test safely
+
+1. Keep `dryRun: true` initially
+2. Send a test spam message from a non-admin account
+3. Check `logs/moderation.log` for logged actions
+4. Set `dryRun: false` when ready for live moderation
+
+## Finding your group ID
+
+When the bot is running, group IDs appear in moderation logs after the first message in that group. You can also temporarily add debug logging, or use WhatsApp Web group info.
+
+Group IDs look like: `120363123456789012@g.us`
+
+Using the group ID in config is more reliable than matching by name.
+
+## Spam detection rules
+
+| Setting | Description |
+|---------|-------------|
+| `blockAllLinks` | Trigger on URLs, short links, and common domain patterns |
+| `keywords` | Case-insensitive keyword list you maintain |
+| `matchMode: any` | Trigger if link **or** keyword matches (default, strictest) |
+| `matchMode: all` | Trigger only if **both** link and keyword match |
+| `wordBoundaryKeywords` | Avoid partial matches (e.g. "coin" won't match "bitcoin") |
+
+## Run classifier tests
+
+```bash
+npm run test:classifier
+```
+
+## Docker deployment (VPS)
+
+```bash
+docker build -t whatsapp-spam-guard .
+docker run -it --name spam-guard \
+  -v "$(pwd)/config.yaml:/app/config.yaml" \
+  -v "$(pwd)/logs:/app/logs" \
+  -v "$(pwd)/.wwebjs_auth:/app/.wwebjs_auth" \
+  whatsapp-spam-guard
+```
+
+On first run, scan the QR code shown in the container logs.
+
+## Recommended WhatsApp settings (manual)
+
+While the bot runs, also tighten group permissions:
+
+1. **Approve new members: ON**
+2. **Add members: Only admins**
+3. Post clear group rules about links and spam
+
+## Project structure
+
+```
+whatsapp-spam-guard/
+├── config.yaml           # Groups, keywords, rules
+├── src/
+│   ├── index.js          # Entry point
+│   ├── spamClassifier.js # Link + keyword detection
+│   ├── moderator.js      # Delete + kick actions
+│   └── utils/
+│       ├── config.js
+│       ├── isAdmin.js
+│       ├── logger.js
+│       └── urlDetector.js
+└── logs/moderation.log   # Action log (created at runtime)
+```
+
+## Troubleshooting
+
+| Issue | Fix |
+|-------|-----|
+| QR code keeps appearing | Delete `.wwebjs_auth/` and re-scan |
+| Bot can't delete/kick | Confirm your account is a group admin |
+| False positives | Switch to `matchMode: all` or enable `wordBoundaryKeywords` |
+| Admin kicked by mistake | Admins are exempt; verify `@lid` ID resolution in logs |

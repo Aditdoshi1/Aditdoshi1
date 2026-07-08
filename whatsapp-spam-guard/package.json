@@ -1,0 +1,21 @@
+{
+  "name": "whatsapp-spam-guard",
+  "version": "1.0.0",
+  "description": "WhatsApp group spam auto-moderation bot",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "test:classifier": "node src/test/classifier.test.js",
+    "test:moderator": "node src/test/moderator.test.js",
+    "test": "npm run test:classifier && npm run test:moderator"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "qrcode-terminal": "^0.12.0",
+    "whatsapp-web.js": "^1.34.7",
+    "yaml": "^2.8.2"
+  }
+}
