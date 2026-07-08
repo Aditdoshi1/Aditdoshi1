@@ -102,6 +102,46 @@ Group IDs look like: `120363123456789012@g.us`
 
 Using the group ID in config is more reliable than matching by name.
 
+## Limit groups
+
+Open **http://localhost:3000** → **Monitored Groups**.
+
+- Each WhatsApp group appears with a toggle
+- **ON** = bot scans that group for spam
+- **OFF** = bot ignores that group completely
+- Changes save instantly
+
+## Manage spam rules
+
+Use the **Spam Rules** panel on the dashboard:
+
+| Setting | What it does |
+|---------|--------------|
+| Keywords | One per line. Messages containing these words are flagged |
+| Block all links | Delete/remove any message with a URL |
+| Match mode | `any` = link OR keyword; `all` = both required |
+| Dry run | Log only, no delete/kick (good for testing) |
+| Word boundaries | Avoid partial matches like "coin" in "bitcoin" |
+
+Click **Save Rules** after editing.
+
+## Mark spam directly in WhatsApp
+
+As a group admin, **reply to any message** with:
+
+```
+!spam
+```
+
+The bot will:
+1. Delete the replied-to message for everyone
+2. Remove the sender from the group
+3. Log it in the dashboard as `manual`
+
+This works even if the message didn't match your keyword rules. You can change the command in the dashboard (default: `!spam`).
+
+**Note:** Turn off **Dry run** in the dashboard when you want live delete/kick actions.
+
 ## Spam detection rules
 
 | Setting | Description |

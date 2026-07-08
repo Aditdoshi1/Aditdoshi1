@@ -12,6 +12,13 @@ const groupsNotice = document.getElementById('groupsNotice');
 const logsBody = document.getElementById('logsBody');
 const logsEmpty = document.getElementById('logsEmpty');
 const groupFilter = document.getElementById('groupFilter');
+const keywordsInput = document.getElementById('keywordsInput');
+const blockAllLinksInput = document.getElementById('blockAllLinksInput');
+const matchModeInput = document.getElementById('matchModeInput');
+const dryRunInput = document.getElementById('dryRunInput');
+const wordBoundaryInput = document.getElementById('wordBoundaryInput');
+const spamCommandInput = document.getElementById('spamCommandInput');
+const rulesSavedNotice = document.getElementById('rulesSavedNotice');
 
 async function fetchJson(url, options) {
   const response = await fetch(url, options);
@@ -161,12 +168,13 @@ function renderLogs(entries) {
     const row = document.createElement('tr');
     const action = entry.action || (entry.skipped ? 'skipped' : 'unknown');
     const reasons = (entry.reasons || []).join(', ') || '-';
+    const trigger = entry.triggeredBy ? ` · ${entry.triggeredBy}` : '';
 
     row.innerHTML = `
       <td>${formatTime(entry.timestamp)}</td>
       <td>${escapeHtml(entry.groupName || entry.groupId || '-')}</td>
       <td>${escapeHtml(entry.senderId || '-')}</td>
-      <td>${escapeHtml(reasons)}</td>
+      <td>${escapeHtml(reasons + trigger)}</td>
       <td class="message-snippet">${escapeHtml(entry.messageSnippet || '-')}</td>
       <td><span class="badge ${action}">${escapeHtml(action.replace('_', ' '))}</span></td>
     `;
@@ -239,6 +247,48 @@ async function loadLogs() {
   return data.entries;
 }
 
+async function loadRules() {
+  const data = await fetchJson('/api/config/rules');
+  const { rules, commands } = data;
+
+  keywordsInput.value = (rules.keywords || []).join('\n');
+  blockAllLinksInput.checked = Boolean(rules.blockAllLinks);
+  matchModeInput.value = rules.matchMode || 'any';
+  dryRunInput.checked = Boolean(rules.dryRun);
+  wordBoundaryInput.checked = Boolean(rules.wordBoundaryKeywords);
+  spamCommandInput.value = commands?.spam || '!spam';
+}
+
+async function saveRules() {
+  const keywords = keywordsInput.value
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  await fetchJson('/api/config/rules', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      rules: {
+        keywords,
+        blockAllLinks: blockAllLinksInput.checked,
+        matchMode: matchModeInput.value,
+        dryRun: dryRunInput.checked,
+        wordBoundaryKeywords: wordBoundaryInput.checked,
+      },
+      commands: {
+        enabled: true,
+        spam: spamCommandInput.value.trim() || '!spam',
+        deleteCommandMessage: true,
+      },
+    }),
+  });
+
+  rulesSavedNotice.classList.remove('hidden');
+  setTimeout(() => rulesSavedNotice.classList.add('hidden'), 2500);
+  await loadStatus();
+}
+
 async function refreshAll() {
   const [status, groups, entries] = await Promise.all([
     loadStatus(),
@@ -252,9 +302,12 @@ async function refreshAll() {
 
 document.getElementById('refreshGroupsBtn').addEventListener('click', loadGroups);
 document.getElementById('refreshLogsBtn').addEventListener('click', loadLogs);
+document.getElementById('saveRulesBtn').addEventListener('click', () => {
+  saveRules().catch((error) => alert(error.message));
+});
 groupFilter.addEventListener('change', loadLogs);
 
-refreshAll().catch((error) => {
+Promise.all([refreshAll(), loadRules()]).catch((error) => {
   statusDot.classList.add('error');
   statusText.textContent = 'Dashboard error';
   statusMeta.textContent = error.message;

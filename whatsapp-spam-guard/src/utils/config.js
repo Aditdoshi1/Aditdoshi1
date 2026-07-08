@@ -16,6 +16,11 @@ const DEFAULT_CONFIG = {
     dryRun: true,
     wordBoundaryKeywords: false,
   },
+  commands: {
+    enabled: true,
+    spam: '!spam',
+    deleteCommandMessage: true,
+  },
   moderation: {
     deleteMessage: true,
     removeUser: true,
@@ -43,6 +48,7 @@ function loadConfig(configPath = DEFAULT_CONFIG_PATH) {
     ...parsed,
     dashboard: { ...DEFAULT_CONFIG.dashboard, ...parsed.dashboard },
     rules: { ...DEFAULT_CONFIG.rules, ...parsed.rules },
+    commands: { ...DEFAULT_CONFIG.commands, ...parsed.commands },
     moderation: { ...DEFAULT_CONFIG.moderation, ...parsed.moderation },
   };
 }
@@ -54,6 +60,10 @@ function saveConfig(config, configPath = DEFAULT_CONFIG_PATH) {
     rules: {
       ...DEFAULT_CONFIG.rules,
       ...config.rules,
+    },
+    commands: {
+      ...DEFAULT_CONFIG.commands,
+      ...config.commands,
     },
     moderation: {
       ...DEFAULT_CONFIG.moderation,
@@ -76,9 +86,40 @@ function updateMonitoredGroups(monitoredGroups, configPath = DEFAULT_CONFIG_PATH
   return saveConfig(config, configPath);
 }
 
+function updateRules(rules, configPath = DEFAULT_CONFIG_PATH) {
+  const config = loadConfig(configPath);
+  config.rules = {
+    ...config.rules,
+    ...rules,
+  };
+  return saveConfig(config, configPath);
+}
+
+function updateSettings({ rules, commands }, configPath = DEFAULT_CONFIG_PATH) {
+  const config = loadConfig(configPath);
+
+  if (rules) {
+    config.rules = {
+      ...config.rules,
+      ...rules,
+    };
+  }
+
+  if (commands) {
+    config.commands = {
+      ...config.commands,
+      ...commands,
+    };
+  }
+
+  return saveConfig(config, configPath);
+}
+
 module.exports = {
   loadConfig,
   saveConfig,
   updateMonitoredGroups,
+  updateRules,
+  updateSettings,
   resolveConfigPath,
 };

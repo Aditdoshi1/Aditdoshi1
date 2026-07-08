@@ -121,6 +121,52 @@ h2 {
   background: #2d3c4f;
 }
 
+.btn.primary {
+  background: var(--accent);
+  color: #0f1419;
+}
+
+.btn.primary:hover {
+  filter: brightness(0.95);
+}
+
+.rules-form {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.field,
+.checkbox-field {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.field span,
+.checkbox-field span {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.field input,
+.field textarea,
+.field select {
+  background: #243040;
+  color: var(--text);
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+  padding: 0.65rem 0.75rem;
+  font: inherit;
+}
+
+.checkbox-field {
+  grid-template-columns: auto 1fr;
+  align-items: center;
+}
+
+.command-help {
+  margin: 0;
+}
+
 select {
   background: #243040;
   color: var(--text);
@@ -270,17 +316,18 @@ th {
 
 @media (min-width: 1100px) {
   .layout {
-    grid-template-columns: 380px 1fr;
+    grid-template-columns: 360px 360px 1fr;
     align-items: start;
   }
 
   .layout.connected {
-    grid-template-columns: 380px 1fr;
+    grid-template-columns: 360px 360px 1fr;
   }
-}
 
-.connect-panel {
-  grid-column: 1 / -1;
+  .connect-panel,
+  .logs-panel {
+    grid-column: 1 / -1;
+  }
 }
 
 .qr-wrap {

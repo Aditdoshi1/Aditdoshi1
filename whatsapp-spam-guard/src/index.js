@@ -8,6 +8,7 @@ const { classifySpam } = require('./spamClassifier');
 const { isGroupAdmin, normalizeId } = require('./utils/isAdmin');
 const Moderator = require('./moderator');
 const { startDashboard } = require('./dashboard/server');
+const { handleManualSpamCommand } = require('./manualModeration');
 
 let reconnectTimer = null;
 let activeClient = null;
@@ -91,11 +92,28 @@ function scheduleReconnect(startFn) {
 async function handleMessage(client, message) {
   const config = botState.config;
 
-  if (!config || message.fromMe) {
+  if (!config) {
     return;
   }
 
   const chat = await message.getChat();
+
+  if (!chat.isGroup) {
+    return;
+  }
+
+  if (message.fromMe) {
+    if (isMonitoredGroup(chat, config.monitoredGroups)) {
+      await handleManualSpamCommand({
+        client,
+        message,
+        chat,
+        config,
+        moderator: botState.moderator,
+      });
+    }
+    return;
+  }
 
   if (!isMonitoredGroup(chat, config.monitoredGroups)) {
     return;

@@ -52,7 +52,7 @@ class Moderator {
     return [...new Set(kickIds)];
   }
 
-  async moderateMessage({ client, message, chat, classification }) {
+  async moderateMessage({ client, message, chat, classification, triggeredBy = 'auto' }) {
     const authorId = normalizeId(message.author || message.from);
     const groupId = normalizeId(chat.id?._serialized || chat.id);
     const groupName = chat.name || groupId;
@@ -60,6 +60,7 @@ class Moderator {
 
     const entry = {
       dryRun: Boolean(this.config.rules.dryRun),
+      triggeredBy,
       groupId,
       groupName,
       senderId: authorId,

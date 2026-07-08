@@ -9,7 +9,8 @@
     "test:classifier": "node src/test/classifier.test.js",
     "test:moderator": "node src/test/moderator.test.js",
     "test:config": "node src/test/config.test.js",
-    "test": "npm run test:classifier && npm run test:moderator && npm run test:config"
+    "test:manual": "node src/test/manual.test.js",
+    "test": "npm run test:classifier && npm run test:moderator && npm run test:config && npm run test:manual"
   },
   "engines": {
     "node": ">=20"

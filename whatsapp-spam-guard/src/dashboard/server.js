@@ -3,7 +3,7 @@ const path = require('path');
 const QRCode = require('qrcode');
 
 const { botState, emitConfigChange } = require('../botState');
-const { loadConfig, updateMonitoredGroups } = require('../utils/config');
+const { loadConfig, updateMonitoredGroups, updateSettings } = require('../utils/config');
 const { readModerationLogs } = require('../utils/logReader');
 const { normalizeId } = require('../utils/isAdmin');
 const { logInfo, logError } = require('../utils/logger');
@@ -73,6 +73,8 @@ function createDashboardApp() {
       hasQr: Boolean(botState.qrCode),
       qrUpdatedAt: botState.qrUpdatedAt,
       dryRun: config.rules?.dryRun ?? true,
+      rules: config.rules || {},
+      commands: config.commands || {},
       monitoredGroups: config.monitoredGroups || [],
       keywords: config.rules?.keywords || [],
     });
@@ -138,6 +140,50 @@ function createDashboardApp() {
   app.get('/api/config/groups', (_req, res) => {
     const config = botState.config || loadConfig();
     res.json({ monitoredGroups: config.monitoredGroups || [] });
+  });
+
+  app.get('/api/config/rules', (_req, res) => {
+    const config = botState.config || loadConfig();
+    res.json({
+      rules: config.rules || {},
+      commands: config.commands || {},
+    });
+  });
+
+  app.put('/api/config/rules', (req, res) => {
+    try {
+      const { rules, commands } = req.body;
+
+      if (!rules || typeof rules !== 'object') {
+        res.status(400).json({ error: 'rules object is required' });
+        return;
+      }
+
+      const sanitizedRules = {
+        ...rules,
+        keywords: Array.isArray(rules.keywords)
+          ? rules.keywords.map((keyword) => String(keyword).trim()).filter(Boolean)
+          : undefined,
+      };
+
+      const updatedConfig = updateSettings({
+        rules: sanitizedRules,
+        commands: commands && typeof commands === 'object' ? commands : undefined,
+      });
+
+      emitConfigChange(updatedConfig);
+
+      logInfo('Updated spam rules from dashboard');
+
+      res.json({
+        ok: true,
+        rules: updatedConfig.rules,
+        commands: updatedConfig.commands,
+      });
+    } catch (error) {
+      logError('Failed to update rules', error);
+      res.status(500).json({ error: 'Failed to update rules' });
+    }
   });
 
   app.put('/api/config/groups', (req, res) => {

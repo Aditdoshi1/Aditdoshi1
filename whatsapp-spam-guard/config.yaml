@@ -29,6 +29,11 @@ rules:
   # Require word boundaries for keyword matches (reduces false positives)
   wordBoundaryKeywords: false
 
+commands:
+  enabled: true
+  spam: "!spam"
+  deleteCommandMessage: true
+
 moderation:
   deleteMessage: true
   removeUser: true

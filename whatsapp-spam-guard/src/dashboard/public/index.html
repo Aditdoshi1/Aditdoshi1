@@ -37,7 +37,7 @@
       <p class="qr-meta" id="qrMeta"></p>
     </section>
 
-    <section class="panel dashboard-panel hidden" id="dashboardPanel">
+    <section class="panel dashboard-panel" id="dashboardPanel">
       <div class="panel-header">
         <h2>Monitored Groups</h2>
         <button id="refreshGroupsBtn" class="btn secondary">Refresh</button>
@@ -49,7 +49,50 @@
       <div id="groupsList" class="groups-list"></div>
     </section>
 
-    <section class="panel">
+    <section class="panel rules-panel">
+      <div class="panel-header">
+        <h2>Spam Rules</h2>
+        <button id="saveRulesBtn" class="btn primary">Save Rules</button>
+      </div>
+      <p class="panel-help">
+        Control automatic spam detection. One keyword per line. Manual removal uses the WhatsApp command below.
+      </p>
+      <form id="rulesForm" class="rules-form">
+        <label class="field">
+          <span>Keywords</span>
+          <textarea id="keywordsInput" rows="8" placeholder="crypto&#10;earn money&#10;click here"></textarea>
+        </label>
+        <label class="checkbox-field">
+          <input type="checkbox" id="blockAllLinksInput">
+          <span>Block all links</span>
+        </label>
+        <label class="field">
+          <span>Match mode</span>
+          <select id="matchModeInput">
+            <option value="any">Any link OR keyword (strictest)</option>
+            <option value="all">Both link AND keyword required</option>
+          </select>
+        </label>
+        <label class="checkbox-field">
+          <input type="checkbox" id="dryRunInput">
+          <span>Dry run (log only, no delete/kick)</span>
+        </label>
+        <label class="checkbox-field">
+          <input type="checkbox" id="wordBoundaryInput">
+          <span>Word boundaries for keywords</span>
+        </label>
+        <label class="field">
+          <span>WhatsApp manual spam command</span>
+          <input type="text" id="spamCommandInput" placeholder="!spam">
+        </label>
+        <p class="panel-help command-help">
+          To mark spam from WhatsApp: reply to a message with <strong>!spam</strong> (or your custom command). The bot deletes that message and removes the sender.
+        </p>
+      </form>
+      <div id="rulesSavedNotice" class="notice hidden">Rules saved.</div>
+    </section>
+
+    <section class="panel logs-panel">
       <div class="panel-header">
         <h2>Moderation Log</h2>
         <div class="filters">
