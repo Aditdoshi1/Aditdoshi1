@@ -11,7 +11,8 @@
     "test:config": "node src/test/config.test.js",
     "test:manual": "node src/test/manual.test.js",
     "test:admin": "node src/test/isAdmin.test.js",
-    "test": "npm run test:classifier && npm run test:moderator && npm run test:config && npm run test:manual && npm run test:admin"
+    "test:learn": "node src/test/learnKeywords.test.js",
+    "test": "npm run test:classifier && npm run test:moderator && npm run test:config && npm run test:manual && npm run test:admin && npm run test:learn"
   },
   "engines": {
     "node": ">=20"

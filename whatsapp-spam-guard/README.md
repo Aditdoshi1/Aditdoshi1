@@ -134,13 +134,14 @@ As a group admin, **reply to any message** with:
 ```
 
 The bot will:
-1. Delete the replied-to message for everyone
-2. Remove the sender from the group
-3. Log it in the dashboard as `manual`
+1. **Add the message text to your spam keywords** (for future auto-detection)
+2. Delete the replied-to message for everyone
+3. Remove the sender from the group
+4. Log it in the dashboard as `manual`
 
 This works even if the message didn't match your keyword rules. You can change the command in the dashboard (default: `!spam`).
 
-**Note:** Turn off **Dry run** in the dashboard when you want live delete/kick actions.
+**Note:** With **Dry run ON**, keywords are still learned and saved, but messages are not deleted until you turn dry run off.
 
 ## Spam detection rules
 

@@ -20,6 +20,7 @@ const DEFAULT_CONFIG = {
     enabled: true,
     spam: '!spam',
     deleteCommandMessage: true,
+    learnKeywords: true,
   },
   moderation: {
     deleteMessage: true,
@@ -115,11 +116,36 @@ function updateSettings({ rules, commands }, configPath = DEFAULT_CONFIG_PATH) {
   return saveConfig(config, configPath);
 }
 
+function addKeywords(newKeywords, configPath = DEFAULT_CONFIG_PATH) {
+  const config = loadConfig(configPath);
+  const existing = config.rules.keywords || [];
+  const merged = [...existing];
+
+  for (const keyword of newKeywords) {
+    const trimmed = String(keyword || '').trim();
+    if (!trimmed) {
+      continue;
+    }
+
+    const alreadyExists = merged.some(
+      (entry) => entry.trim().toLowerCase() === trimmed.toLowerCase(),
+    );
+
+    if (!alreadyExists) {
+      merged.push(trimmed);
+    }
+  }
+
+  config.rules.keywords = merged;
+  return saveConfig(config, configPath);
+}
+
 module.exports = {
   loadConfig,
   saveConfig,
   updateMonitoredGroups,
   updateRules,
   updateSettings,
+  addKeywords,
   resolveConfigPath,
 };
