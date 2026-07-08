@@ -104,13 +104,17 @@ async function handleMessage(client, message) {
 
   if (message.fromMe) {
     if (isMonitoredGroup(chat, config.monitoredGroups) && await isBotGroupAdmin(chat, client)) {
-      await handleManualSpamCommand({
+      const handled = await handleManualSpamCommand({
         client,
         message,
         chat,
         config,
         moderator: botState.moderator,
       });
+
+      if (handled) {
+        botState.config = loadConfig();
+      }
     }
     return;
   }
@@ -194,10 +198,26 @@ async function start() {
   });
 
   client.on('message', async (message) => {
+    if (message.fromMe) {
+      return;
+    }
+
     try {
       await handleMessage(client, message);
     } catch (error) {
       logError('Unhandled message processing error', error);
+    }
+  });
+
+  client.on('message_create', async (message) => {
+    if (!message.fromMe) {
+      return;
+    }
+
+    try {
+      await handleMessage(client, message);
+    } catch (error) {
+      logError('Unhandled own-message processing error', error);
     }
   });
 

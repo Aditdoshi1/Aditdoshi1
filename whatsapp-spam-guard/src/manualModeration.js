@@ -39,6 +39,12 @@ async function handleManualSpamCommand({ client, message, chat, config, moderato
     return false;
   }
 
+  logInfo('Manual spam command received', {
+    group: chat.name,
+    hasQuotedMsg: message.hasQuotedMsg,
+    dryRun: Boolean(config.rules?.dryRun),
+  });
+
   if (!message.hasQuotedMsg) {
     await message.reply(
       'Reply to a spam message with !spam. I will remove it, kick the sender, and add it to your spam rules.',
@@ -51,7 +57,14 @@ async function handleManualSpamCommand({ client, message, chat, config, moderato
   const quotedText = quoted.body || '';
 
   if (quoted.fromMe) {
-    await message.reply('Cannot mark your own message as spam.');
+    const learnedKeywords = await learnFromSpamMessage(config, quotedText);
+    const learnedText = learnedKeywords.length
+      ? `Added to spam rules: ${learnedKeywords.map((k) => `"${k}"`).join(', ')}`
+      : 'Could not extract a new keyword from that message.';
+
+    await message.reply(
+      `Test message noted. ${learnedText} (Skipped remove — you cannot kick your own account.)`,
+    );
     return true;
   }
 
