@@ -73,10 +73,21 @@ async function isGroupAdmin(message, chat, client) {
   return Boolean(participant?.isAdmin);
 }
 
+async function isBotGroupAdmin(chat, client) {
+  if (!client?.info?.wid) {
+    return false;
+  }
+
+  const botId = normalizeId(client.info.wid._serialized || client.info.wid);
+  const participant = await findParticipant(chat, botId, client);
+  return Boolean(participant?.isAdmin);
+}
+
 module.exports = {
   normalizeId,
   idsMatch,
   resolveParticipantIds,
   findParticipant,
   isGroupAdmin,
+  isBotGroupAdmin,
 };

@@ -5,7 +5,7 @@ const { botState, setBotState, emitConfigChange } = require('./botState');
 const { loadConfig } = require('./utils/config');
 const { logInfo, logError } = require('./utils/logger');
 const { classifySpam } = require('./spamClassifier');
-const { isGroupAdmin, normalizeId } = require('./utils/isAdmin');
+const { isGroupAdmin, isBotGroupAdmin, normalizeId } = require('./utils/isAdmin');
 const Moderator = require('./moderator');
 const { startDashboard } = require('./dashboard/server');
 const { handleManualSpamCommand } = require('./manualModeration');
@@ -103,7 +103,7 @@ async function handleMessage(client, message) {
   }
 
   if (message.fromMe) {
-    if (isMonitoredGroup(chat, config.monitoredGroups)) {
+    if (isMonitoredGroup(chat, config.monitoredGroups) && await isBotGroupAdmin(chat, client)) {
       await handleManualSpamCommand({
         client,
         message,
@@ -116,6 +116,10 @@ async function handleMessage(client, message) {
   }
 
   if (!isMonitoredGroup(chat, config.monitoredGroups)) {
+    return;
+  }
+
+  if (!await isBotGroupAdmin(chat, client)) {
     return;
   }
 

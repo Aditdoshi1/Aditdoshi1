@@ -106,9 +106,9 @@ Using the group ID in config is more reliable than matching by name.
 
 Open **http://localhost:3000** → **Monitored Groups**.
 
-- Each WhatsApp group appears with a toggle
-- **ON** = bot scans that group for spam
-- **OFF** = bot ignores that group completely
+- Only groups where **you are an admin** are listed
+- **Toggle ON** = bot scans that group for spam
+- **Toggle OFF** = bot ignores that group completely
 - Changes save instantly
 
 ## Manage spam rules

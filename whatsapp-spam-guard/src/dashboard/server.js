@@ -5,7 +5,7 @@ const QRCode = require('qrcode');
 const { botState, emitConfigChange } = require('../botState');
 const { loadConfig, updateMonitoredGroups, updateSettings } = require('../utils/config');
 const { readModerationLogs } = require('../utils/logReader');
-const { normalizeId } = require('../utils/isAdmin');
+const { normalizeId, isBotGroupAdmin } = require('../utils/isAdmin');
 const { logInfo, logError } = require('../utils/logger');
 
 function isMonitoredGroupId(groupId, monitoredGroups) {
@@ -40,23 +40,31 @@ async function listWhatsAppGroups() {
   }
 
   const chats = await client.getChats();
+  const groups = [];
 
-  return chats
-    .filter((chat) => chat.isGroup)
-    .map((chat) => {
-      const id = normalizeId(chat.id?._serialized || chat.id);
-      const name = chat.name || id;
-      const monitoredGroups = botState.config?.monitoredGroups || [];
+  for (const chat of chats) {
+    if (!chat.isGroup) {
+      continue;
+    }
 
-      return {
-        id,
-        name,
-        participantCount: chat.participants?.length || 0,
-        monitored: isMonitoredGroupId(id, monitoredGroups)
-          || isMonitoredGroupName(name, monitoredGroups),
-      };
-    })
-    .sort((a, b) => a.name.localeCompare(b.name));
+    if (!await isBotGroupAdmin(chat, client)) {
+      continue;
+    }
+
+    const id = normalizeId(chat.id?._serialized || chat.id);
+    const name = chat.name || id;
+    const monitoredGroups = botState.config?.monitoredGroups || [];
+
+    groups.push({
+      id,
+      name,
+      participantCount: chat.participants?.length || 0,
+      monitored: isMonitoredGroupId(id, monitoredGroups)
+        || isMonitoredGroupName(name, monitoredGroups),
+    });
+  }
+
+  return groups.sort((a, b) => a.name.localeCompare(b.name));
 }
 
 function createDashboardApp() {

@@ -106,7 +106,7 @@ function renderGroups(groups, ready) {
   groupsNotice.classList.add('hidden');
 
   if (!groups.length) {
-    groupsList.innerHTML = '<div class="empty-state">No WhatsApp groups found on this account.</div>';
+    groupsList.innerHTML = '<div class="empty-state">No admin groups found. You must be a group admin for the bot to delete spam and remove users.</div>';
     return;
   }
 
