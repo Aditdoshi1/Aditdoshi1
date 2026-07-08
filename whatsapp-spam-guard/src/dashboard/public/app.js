@@ -1,6 +1,12 @@
 const statusDot = document.getElementById('statusDot');
 const statusText = document.getElementById('statusText');
 const statusMeta = document.getElementById('statusMeta');
+const connectPanel = document.getElementById('connectPanel');
+const connectNotice = document.getElementById('connectNotice');
+const qrImage = document.getElementById('qrImage');
+const qrPlaceholder = document.getElementById('qrPlaceholder');
+const qrMeta = document.getElementById('qrMeta');
+const layout = document.querySelector('.layout');
 const groupsList = document.getElementById('groupsList');
 const groupsNotice = document.getElementById('groupsNotice');
 const logsBody = document.getElementById('logsBody');
@@ -28,13 +34,57 @@ function renderStatus(status) {
   if (status.ready) {
     statusDot.classList.add('ready');
     statusText.textContent = 'Bot connected';
+    connectPanel.classList.add('hidden');
+    layout.classList.add('connected');
   } else if (status.authenticated) {
     statusText.textContent = 'Authenticated, loading chats...';
+    connectPanel.classList.remove('hidden');
+    layout.classList.remove('connected');
   } else {
     statusText.textContent = 'Waiting for WhatsApp scan';
+    connectPanel.classList.remove('hidden');
+    layout.classList.remove('connected');
   }
 
   statusMeta.textContent = `Dry run: ${status.dryRun ? 'ON' : 'OFF'} · Monitoring ${status.monitoredGroups.length} group(s)`;
+}
+
+async function loadQr(status) {
+  if (status.ready) {
+    qrImage.classList.add('hidden');
+    qrPlaceholder.classList.add('hidden');
+    qrMeta.textContent = '';
+    connectNotice.classList.add('hidden');
+    return;
+  }
+
+  connectNotice.classList.remove('hidden');
+  connectNotice.textContent = 'If WhatsApp says "can\'t connect to this device", run the bot on your own computer instead of a cloud server. WhatsApp often blocks cloud/datacenter connections.';
+
+  try {
+    const response = await fetch('/api/qr');
+    const data = await response.json();
+
+    if (response.ok && data.dataUrl) {
+      qrImage.src = data.dataUrl;
+      qrImage.classList.remove('hidden');
+      qrPlaceholder.classList.add('hidden');
+      qrMeta.textContent = data.qrUpdatedAt
+        ? `QR updated ${formatTime(data.qrUpdatedAt)} · refreshes automatically`
+        : 'Scan with WhatsApp Linked Devices';
+      return;
+    }
+
+    qrImage.classList.add('hidden');
+    qrPlaceholder.classList.remove('hidden');
+    qrPlaceholder.textContent = data.message || 'Waiting for QR code...';
+    qrMeta.textContent = '';
+  } catch (error) {
+    qrImage.classList.add('hidden');
+    qrPlaceholder.classList.remove('hidden');
+    qrPlaceholder.textContent = 'Waiting for QR code...';
+    qrMeta.textContent = error.message;
+  }
 }
 
 function renderGroups(groups, ready) {
@@ -167,6 +217,7 @@ function escapeHtml(value) {
 async function loadStatus() {
   const status = await fetchJson('/api/status');
   renderStatus(status);
+  await loadQr(status);
   return status;
 }
 
@@ -209,4 +260,4 @@ refreshAll().catch((error) => {
   statusMeta.textContent = error.message;
 });
 
-setInterval(refreshAll, 10000);
+setInterval(refreshAll, 5000);

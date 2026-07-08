@@ -61,6 +61,19 @@ Scan the QR code with WhatsApp on your phone:
 
 **WhatsApp → Linked Devices → Link a Device**
 
+You can also open **http://localhost:3000** — the dashboard shows a scannable QR image.
+
+**Important:** WhatsApp often blocks linking from cloud servers (AWS, DigitalOcean, etc.). If you see *"can't connect to this device"*, run the bot on **your own computer** instead:
+
+```bash
+git clone https://github.com/Aditdoshi1/Aditdoshi1.git
+cd Aditdoshi1/whatsapp-spam-guard
+npm install
+npm start
+```
+
+Then open http://localhost:3000 and scan from there.
+
 ### 4. Open the dashboard
 
 While the bot runs, open:
@@ -167,7 +180,8 @@ whatsapp-spam-guard/
 
 | Issue | Fix |
 |-------|-----|
-| QR code keeps appearing | Delete `.wwebjs_auth/` and re-scan |
+| QR keeps failing / "can't connect to this device" | Run on your local PC, not a cloud server. Clear session with `npm run reset-auth` |
+| QR code keeps appearing | Delete `.wwebjs_auth/` or run `npm run reset-auth`, then restart |
 | Bot can't delete/kick | Confirm your account is a group admin |
 | False positives | Switch to `matchMode: all` or enable `wordBoundaryKeywords` |
 | Admin kicked by mistake | Admins are exempt; verify `@lid` ID resolution in logs |

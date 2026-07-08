@@ -22,7 +22,22 @@
   </header>
 
   <main class="layout">
-    <section class="panel">
+    <section class="panel connect-panel" id="connectPanel">
+      <div class="panel-header">
+        <h2>Connect WhatsApp</h2>
+      </div>
+      <p class="panel-help">
+        Open WhatsApp on your phone → Linked Devices → Link a Device, then scan this code.
+      </p>
+      <div id="connectNotice" class="notice hidden"></div>
+      <div class="qr-wrap">
+        <img id="qrImage" alt="WhatsApp QR code" class="qr-image hidden">
+        <div id="qrPlaceholder" class="empty-state">Waiting for QR code...</div>
+      </div>
+      <p class="qr-meta" id="qrMeta"></p>
+    </section>
+
+    <section class="panel dashboard-panel hidden" id="dashboardPanel">
       <div class="panel-header">
         <h2>Monitored Groups</h2>
         <button id="refreshGroupsBtn" class="btn secondary">Refresh</button>

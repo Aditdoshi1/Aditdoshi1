@@ -273,6 +273,35 @@ th {
     grid-template-columns: 380px 1fr;
     align-items: start;
   }
+
+  .layout.connected {
+    grid-template-columns: 380px 1fr;
+  }
+}
+
+.connect-panel {
+  grid-column: 1 / -1;
+}
+
+.qr-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 340px;
+  background: #fff;
+  border-radius: 16px;
+  padding: 1rem;
+}
+
+.qr-image {
+  width: 320px;
+  height: 320px;
+}
+
+.qr-meta {
+  color: var(--muted);
+  text-align: center;
+  margin-top: 0.75rem;
 }
 
 @media (max-width: 720px) {

@@ -2,6 +2,8 @@ const botState = {
   client: null,
   ready: false,
   authenticated: false,
+  qrCode: null,
+  qrUpdatedAt: null,
   config: null,
   moderator: null,
   listeners: {

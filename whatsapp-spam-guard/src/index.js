@@ -46,6 +46,9 @@ function createClient() {
     authStrategy: new LocalAuth({
       dataPath: '.wwebjs_auth',
     }),
+    restartOnAuthFail: true,
+    takeoverOnConflict: true,
+    qrMaxRetries: 10,
     puppeteer: {
       headless: true,
       args: [
@@ -53,6 +56,9 @@ function createClient() {
         '--disable-setuid-sandbox',
         '--disable-dev-shm-usage',
         '--disable-gpu',
+        '--no-first-run',
+        '--no-zygote',
+        '--disable-accelerated-2d-canvas',
       ],
     },
   });
@@ -123,6 +129,8 @@ async function start() {
     moderator,
     ready: false,
     authenticated: false,
+    qrCode: null,
+    qrUpdatedAt: null,
   });
 
   startDashboard(config);
@@ -132,22 +140,29 @@ async function start() {
   setBotState({ client });
 
   client.on('qr', (qr) => {
+    setBotState({
+      qrCode: qr,
+      qrUpdatedAt: new Date().toISOString(),
+      ready: false,
+      authenticated: false,
+    });
     logInfo('Scan this QR code with WhatsApp (Linked Devices):');
+    logInfo('Or open the dashboard connect page for a scannable image.');
     qrcode.generate(qr, { small: true });
   });
 
   client.on('authenticated', () => {
-    setBotState({ authenticated: true });
+    setBotState({ authenticated: true, qrCode: null });
     logInfo('Authenticated successfully');
   });
 
   client.on('auth_failure', (message) => {
-    setBotState({ authenticated: false, ready: false });
+    setBotState({ authenticated: false, ready: false, qrCode: null });
     logError('Authentication failed', message);
   });
 
   client.on('ready', () => {
-    setBotState({ ready: true });
+    setBotState({ ready: true, qrCode: null });
     logInfo('WhatsApp Spam Guard is ready', {
       dryRun: config.rules.dryRun,
       monitoredGroups: config.monitoredGroups.length,
@@ -165,7 +180,7 @@ async function start() {
   });
 
   client.on('disconnected', (reason) => {
-    setBotState({ ready: false, authenticated: false });
+    setBotState({ ready: false, authenticated: false, qrCode: null });
     logError('Client disconnected', reason);
     scheduleReconnect(start);
   });

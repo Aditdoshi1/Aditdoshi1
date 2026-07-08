@@ -1,5 +1,6 @@
 const express = require('express');
 const path = require('path');
+const QRCode = require('qrcode');
 
 const { botState, emitConfigChange } = require('../botState');
 const { loadConfig, updateMonitoredGroups } = require('../utils/config');
@@ -69,9 +70,48 @@ function createDashboardApp() {
     res.json({
       ready: botState.ready,
       authenticated: botState.authenticated,
+      hasQr: Boolean(botState.qrCode),
+      qrUpdatedAt: botState.qrUpdatedAt,
       dryRun: config.rules?.dryRun ?? true,
       monitoredGroups: config.monitoredGroups || [],
       keywords: config.rules?.keywords || [],
+    });
+  });
+
+  app.get('/api/qr', async (_req, res) => {
+    if (botState.ready) {
+      res.json({ connected: true, message: 'WhatsApp is already connected.' });
+      return;
+    }
+
+    if (!botState.qrCode) {
+      res.status(404).json({
+        connected: false,
+        message: 'No QR code available yet. Wait a few seconds and refresh.',
+      });
+      return;
+    }
+
+    try {
+      const dataUrl = await QRCode.toDataURL(botState.qrCode, {
+        margin: 2,
+        width: 320,
+      });
+
+      res.json({
+        connected: false,
+        qrUpdatedAt: botState.qrUpdatedAt,
+        dataUrl,
+      });
+    } catch (error) {
+      logError('Failed to render QR code', error);
+      res.status(500).json({ error: 'Failed to render QR code' });
+    }
+  });
+
+  app.post('/api/reset-auth', async (_req, res) => {
+    res.status(501).json({
+      error: 'Restart the bot with npm run reset-auth && npm start for a fresh QR code.',
     });
   });
 
