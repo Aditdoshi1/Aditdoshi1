@@ -229,10 +229,17 @@ async function loadStatus() {
   return status;
 }
 
-async function loadGroups() {
-  const data = await fetchJson('/api/groups');
-  renderGroups(data.groups, data.ready);
-  return data.groups;
+async function loadGroups(forceRefresh = false) {
+  try {
+    const url = forceRefresh ? '/api/groups?refresh=1' : '/api/groups';
+    const data = await fetchJson(url);
+    renderGroups(data.groups, data.ready);
+    return data.groups;
+  } catch (error) {
+    groupsNotice.classList.remove('hidden');
+    groupsNotice.textContent = `${error.message} Click Refresh to try again.`;
+    return [];
+  }
 }
 
 async function loadLogs() {
@@ -287,27 +294,29 @@ async function saveRules() {
   rulesSavedNotice.classList.remove('hidden');
   setTimeout(() => rulesSavedNotice.classList.add('hidden'), 2500);
   await loadStatus();
+  await loadLogs();
 }
 
 async function refreshAll() {
-  const [status, groups, entries] = await Promise.all([
+  const [status, entries] = await Promise.all([
     loadStatus(),
-    loadGroups(),
     loadLogs(),
   ]);
 
-  updateGroupFilter(groups, entries);
+  updateGroupFilter([], entries);
   renderStatus(status);
 }
 
-document.getElementById('refreshGroupsBtn').addEventListener('click', loadGroups);
+document.getElementById('refreshGroupsBtn').addEventListener('click', () => {
+  loadGroups(true).catch((error) => alert(error.message));
+});
 document.getElementById('refreshLogsBtn').addEventListener('click', loadLogs);
 document.getElementById('saveRulesBtn').addEventListener('click', () => {
   saveRules().catch((error) => alert(error.message));
 });
 groupFilter.addEventListener('change', loadLogs);
 
-Promise.all([refreshAll(), loadRules()]).catch((error) => {
+Promise.all([refreshAll(), loadRules(), loadGroups()]).catch((error) => {
   statusDot.classList.add('error');
   statusText.textContent = 'Dashboard error';
   statusMeta.textContent = error.message;

@@ -1,42 +1,21 @@
-# Groups to monitor. Match by exact name and/or group ID.
-# Group IDs look like: 120363123456789012@g.us
-# Use the web dashboard to toggle groups on/off after the bot connects.
 monitoredGroups:
-  - name: "My Public Group 1"
-  # - id: "120363123456789012@g.us"
-
-dashboard:
-  port: 3000
-
+  - name: My Public Group 1
 rules:
-  # Delete + remove when ANY link is detected
   blockAllLinks: true
-  # Delete + remove when ANY keyword matches (case-insensitive)
   keywords:
-    - "crypto"
-    - "earn money"
-    - "click here"
-    - "investment"
-    - "free money"
-    - "work from home"
-    - "telegram.me"
-    - "t.me/"
-  # "any" = link OR keyword triggers action
-  # "all" = must match both link AND keyword
-  matchMode: "any"
-  # When true, log actions but do not delete/kick (for testing)
+    - crypto
+    - earn money
+  matchMode: any
   dryRun: true
-  # Require word boundaries for keyword matches (reduces false positives)
   wordBoundaryKeywords: false
-
 commands:
   enabled: true
   spam: "!spam"
   deleteCommandMessage: true
-
 moderation:
   deleteMessage: true
   removeUser: true
   logToFile: true
-  # Minimum seconds between kick actions for the same user in the same group
   rateLimitSeconds: 60
+dashboard:
+  port: 3000

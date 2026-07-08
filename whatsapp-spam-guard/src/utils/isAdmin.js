@@ -62,6 +62,11 @@ async function findParticipant(chat, authorId, client) {
     if (candidateIds.some((candidate) => idsMatch(candidate, participantId))) {
       return participant;
     }
+
+    const participantUser = participant.id?.user;
+    if (participantUser && candidateIds.some((candidate) => candidate.split('@')[0] === participantUser)) {
+      return participant;
+    }
   }
 
   return null;
@@ -79,7 +84,14 @@ async function isBotGroupAdmin(chat, client) {
   }
 
   const botId = normalizeId(client.info.wid._serialized || client.info.wid);
-  const participant = await findParticipant(chat, botId, client);
+  let participant = await findParticipant(chat, botId, client);
+
+  if (!participant && client.info.wid.user) {
+    participant = (chat.participants || []).find(
+      (entry) => entry.id?.user === client.info.wid.user,
+    );
+  }
+
   return Boolean(participant?.isAdmin);
 }
 
