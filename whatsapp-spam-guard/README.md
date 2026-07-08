@@ -61,12 +61,25 @@ Scan the QR code with WhatsApp on your phone:
 
 **WhatsApp → Linked Devices → Link a Device**
 
-### 4. Test safely
+### 4. Open the dashboard
+
+While the bot runs, open:
+
+**http://localhost:3000**
+
+The dashboard lets you:
+
+- See deleted/spam messages by group
+- Toggle which WhatsApp groups the bot monitors
+- Check bot connection status and dry-run mode
+
+### 5. Test safely
 
 1. Keep `dryRun: true` initially
-2. Send a test spam message from a non-admin account
-3. Check `logs/moderation.log` for logged actions
-4. Set `dryRun: false` when ready for live moderation
+2. Enable your groups in the dashboard
+3. Send a test spam message from a non-admin account
+4. Check the dashboard log or `logs/moderation.log`
+5. Set `dryRun: false` when ready for live moderation
 
 ## Finding your group ID
 
@@ -85,6 +98,26 @@ Using the group ID in config is more reliable than matching by name.
 | `matchMode: any` | Trigger if link **or** keyword matches (default, strictest) |
 | `matchMode: all` | Trigger only if **both** link and keyword match |
 | `wordBoundaryKeywords` | Avoid partial matches (e.g. "coin" won't match "bitcoin") |
+
+## Dashboard
+
+| URL | Purpose |
+|-----|---------|
+| `http://localhost:3000` | Web dashboard UI |
+| `GET /api/status` | Bot connection status |
+| `GET /api/logs` | Moderation history |
+| `GET /api/groups` | WhatsApp groups on your account |
+| `PUT /api/config/groups` | Replace monitored group list |
+| `POST /api/config/groups/toggle` | Enable/disable one group |
+
+Change the dashboard port in `config.yaml`:
+
+```yaml
+dashboard:
+  port: 3000
+```
+
+Or set `DASHBOARD_PORT=3000`.
 
 ## Run classifier tests
 

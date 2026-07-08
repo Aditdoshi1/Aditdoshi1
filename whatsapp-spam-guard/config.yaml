@@ -1,8 +1,12 @@
 # Groups to monitor. Match by exact name and/or group ID.
 # Group IDs look like: 120363123456789012@g.us
+# Use the web dashboard to toggle groups on/off after the bot connects.
 monitoredGroups:
   - name: "My Public Group 1"
   # - id: "120363123456789012@g.us"
+
+dashboard:
+  port: 3000
 
 rules:
   # Delete + remove when ANY link is detected

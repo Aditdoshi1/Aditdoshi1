@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WhatsApp Spam Guard</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header class="header">
+    <div>
+      <h1>WhatsApp Spam Guard</h1>
+      <p class="subtitle">Monitor deleted spam and choose which groups the bot protects.</p>
+    </div>
+    <div class="status-card" id="statusCard">
+      <span class="status-dot" id="statusDot"></span>
+      <div>
+        <div id="statusText">Connecting...</div>
+        <div class="status-meta" id="statusMeta"></div>
+      </div>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="panel">
+      <div class="panel-header">
+        <h2>Monitored Groups</h2>
+        <button id="refreshGroupsBtn" class="btn secondary">Refresh</button>
+      </div>
+      <p class="panel-help">
+        Toggle groups on to enable moderation. Only checked groups will be scanned for spam.
+      </p>
+      <div id="groupsNotice" class="notice hidden"></div>
+      <div id="groupsList" class="groups-list"></div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-header">
+        <h2>Moderation Log</h2>
+        <div class="filters">
+          <select id="groupFilter">
+            <option value="">All groups</option>
+          </select>
+          <button id="refreshLogsBtn" class="btn secondary">Refresh</button>
+        </div>
+      </div>
+      <div id="logsEmpty" class="empty-state hidden">No moderated messages yet.</div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Group</th>
+              <th>Sender</th>
+              <th>Reason</th>
+              <th>Message</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="logsBody"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script src="/app.js"></script>
+</body>
+</html>

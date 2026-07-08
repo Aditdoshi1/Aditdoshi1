@@ -1,11 +1,13 @@
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcode = require('qrcode-terminal');
 
+const { botState, setBotState, emitConfigChange } = require('./botState');
 const { loadConfig } = require('./utils/config');
 const { logInfo, logError } = require('./utils/logger');
 const { classifySpam } = require('./spamClassifier');
 const { isGroupAdmin, normalizeId } = require('./utils/isAdmin');
 const Moderator = require('./moderator');
+const { startDashboard } = require('./dashboard/server');
 
 let reconnectTimer = null;
 let activeClient = null;
@@ -16,7 +18,7 @@ function isMonitoredGroup(chat, monitoredGroups) {
   }
 
   if (!monitoredGroups || monitoredGroups.length === 0) {
-    return true;
+    return false;
   }
 
   const chatId = normalizeId(chat.id?._serialized || chat.id);
@@ -65,6 +67,8 @@ function scheduleReconnect(startFn) {
     reconnectTimer = null;
     logInfo('Attempting to reconnect...');
 
+    setBotState({ ready: false, authenticated: false });
+
     if (activeClient) {
       try {
         await activeClient.destroy();
@@ -78,8 +82,10 @@ function scheduleReconnect(startFn) {
   }, 5000);
 }
 
-async function handleMessage(client, config, moderator, message) {
-  if (message.fromMe) {
+async function handleMessage(client, message) {
+  const config = botState.config;
+
+  if (!config || message.fromMe) {
     return;
   }
 
@@ -100,7 +106,7 @@ async function handleMessage(client, config, moderator, message) {
     return;
   }
 
-  await moderator.moderateMessage({
+  await botState.moderator.moderateMessage({
     client,
     message,
     chat,
@@ -111,8 +117,19 @@ async function handleMessage(client, config, moderator, message) {
 async function start() {
   const config = loadConfig();
   const moderator = new Moderator(config);
+
+  setBotState({
+    config,
+    moderator,
+    ready: false,
+    authenticated: false,
+  });
+
+  startDashboard(config);
+
   const client = createClient();
   activeClient = client;
+  setBotState({ client });
 
   client.on('qr', (qr) => {
     logInfo('Scan this QR code with WhatsApp (Linked Devices):');
@@ -120,30 +137,35 @@ async function start() {
   });
 
   client.on('authenticated', () => {
+    setBotState({ authenticated: true });
     logInfo('Authenticated successfully');
   });
 
   client.on('auth_failure', (message) => {
+    setBotState({ authenticated: false, ready: false });
     logError('Authentication failed', message);
   });
 
   client.on('ready', () => {
+    setBotState({ ready: true });
     logInfo('WhatsApp Spam Guard is ready', {
       dryRun: config.rules.dryRun,
       monitoredGroups: config.monitoredGroups.length,
       keywords: config.rules.keywords.length,
+      dashboardPort: process.env.DASHBOARD_PORT || config.dashboard?.port || 3000,
     });
   });
 
   client.on('message', async (message) => {
     try {
-      await handleMessage(client, config, moderator, message);
+      await handleMessage(client, message);
     } catch (error) {
       logError('Unhandled message processing error', error);
     }
   });
 
   client.on('disconnected', (reason) => {
+    setBotState({ ready: false, authenticated: false });
     logError('Client disconnected', reason);
     scheduleReconnect(start);
   });
@@ -155,3 +177,7 @@ start().catch((error) => {
   logError('Failed to start bot', error);
   process.exit(1);
 });
+
+module.exports = {
+  emitConfigChange,
+};
