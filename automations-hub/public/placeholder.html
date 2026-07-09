@@ -6,40 +6,49 @@
   <title>Automation 2 · Automation Hub</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/styles.css">
 </head>
 <body class="app-shell">
-  <aside class="sidebar">
-    <div class="brand">
-      <div class="brand-mark">⚡</div>
-      <div>
-        <strong>Automation Hub</strong>
-        <span>Control center</span>
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-head">
+      <div class="brand">
+        <div class="brand-mark">⚡</div>
+        <div class="brand-text">
+          <strong>Automation Hub</strong>
+          <span>Control center</span>
+        </div>
+      </div>
+      <div class="sidebar-tools">
+        <button type="button" id="sidebarPin" class="sidebar-tool" title="Pin sidebar" aria-label="Pin sidebar">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 3H5v5l4.5 4.5L9 17l3 3 3-3-1.5-4.5L16 8V3z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+        </button>
+        <button type="button" id="sidebarToggle" class="sidebar-tool" title="Collapse sidebar" aria-label="Toggle sidebar">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+        </button>
       </div>
     </div>
     <nav class="sidebar-nav">
       <a href="/" class="sidebar-link">
         <span class="sidebar-icon">📊</span>
-        Dashboard
+        <span class="sidebar-label">Dashboard</span>
       </a>
       <a href="/whatsapp-guard.html" class="sidebar-link">
         <span class="sidebar-icon">💬</span>
-        WhatsApp Guard
+        <span class="sidebar-label">WhatsApp Guard</span>
       </a>
       <a href="/placeholder.html" class="sidebar-link active">
         <span class="sidebar-icon">🔧</span>
-        Automation 2
+        <span class="sidebar-label">Automation 2</span>
       </a>
     </nav>
   </aside>
 
   <div class="app-main">
     <header class="page-header">
-      <div>
+      <div class="page-header-text">
         <p class="eyebrow">Placeholder</p>
         <h1>Automation 2</h1>
-        <p class="subtitle">Reserved slot for your next automation.</p>
       </div>
     </header>
 
@@ -47,13 +56,12 @@
       <section class="panel placeholder-panel">
         <div class="placeholder-icon">🔧</div>
         <h2>Coming soon</h2>
-        <p>
-          This page is a placeholder. When you're ready, we'll wire up a second automation
-          with the same start, stop, and pause controls as WhatsApp Spam Guard.
-        </p>
+        <p>Reserved slot for your next automation with the same controls as WhatsApp Guard.</p>
         <a href="/" class="btn primary">Back to dashboard</a>
       </section>
     </main>
   </div>
+
+  <script src="/js/sidebar.js"></script>
 </body>
 </html>

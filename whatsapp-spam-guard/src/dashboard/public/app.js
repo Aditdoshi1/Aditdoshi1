@@ -21,6 +21,48 @@ const spamCommandInput = document.getElementById('spamCommandInput');
 const rulesSavedNotice = document.getElementById('rulesSavedNotice');
 
 let cachedAdminGroups = [];
+let lastGroupsRenderKey = null;
+let lastLogsRenderKey = null;
+
+if (new URLSearchParams(window.location.search).get('embed') === '1') {
+  document.body.classList.add('embedded');
+}
+
+function showPageFeedback(message, type = 'info') {
+  const el = document.getElementById('pageFeedback');
+  if (!el) {
+    return;
+  }
+
+  el.textContent = message;
+  el.className = `page-feedback ${type} visible`;
+  clearTimeout(showPageFeedback.timer);
+  showPageFeedback.timer = setTimeout(() => {
+    el.classList.remove('visible');
+  }, 2400);
+}
+
+async function withButtonLoading(button, message, task) {
+  if (button) {
+    button.disabled = true;
+    button.classList.add('loading');
+  }
+
+  showPageFeedback(message, 'loading');
+
+  try {
+    await task();
+    showPageFeedback(message.replace(/…$/, ' done'), 'success');
+  } catch (error) {
+    showPageFeedback(error.message, 'error');
+    throw error;
+  } finally {
+    if (button) {
+      button.disabled = false;
+      button.classList.remove('loading');
+    }
+  }
+}
 
 function sortGroupsForDisplay(groups) {
   return [...groups].sort((a, b) => {
@@ -131,6 +173,17 @@ async function loadQr(status) {
 }
 
 function renderGroups(groups, ready, orphanedMonitoredGroups = []) {
+  const renderKey = JSON.stringify({
+    ready,
+    groups: groups.map((group) => [group.id, group.monitored, group.name, group.participantCount]),
+    orphaned: orphanedMonitoredGroups.map((entry) => [entry.id, entry.name]),
+  });
+
+  if (renderKey === lastGroupsRenderKey) {
+    return;
+  }
+
+  lastGroupsRenderKey = renderKey;
   groupsList.innerHTML = '';
 
   if (!ready) {
@@ -243,6 +296,19 @@ function appendOrphanedGroupItem(entry) {
 }
 
 function renderLogs(entries) {
+  const renderKey = JSON.stringify(entries.map((entry) => [
+    entry.timestamp,
+    entry.groupName,
+    entry.senderId,
+    entry.action,
+    entry.messageSnippet,
+  ]));
+
+  if (renderKey === lastLogsRenderKey) {
+    return;
+  }
+
+  lastLogsRenderKey = renderKey;
   logsBody.innerHTML = '';
 
   if (!entries.length) {
@@ -361,34 +427,38 @@ async function loadRules() {
 }
 
 async function saveRules() {
+  const saveBtn = document.getElementById('saveRulesBtn');
   const keywords = keywordsInput.value
     .split('\n')
     .map((line) => line.trim())
     .filter(Boolean);
 
-  await fetchJson('/api/config/rules', {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      rules: {
-        keywords,
-        blockAllLinks: blockAllLinksInput.checked,
-        matchMode: matchModeInput.value,
-        dryRun: dryRunInput.checked,
-        wordBoundaryKeywords: wordBoundaryInput.checked,
-      },
-      commands: {
-        enabled: true,
-        spam: spamCommandInput.value.trim() || '!spam',
-        deleteCommandMessage: true,
-      },
-    }),
-  });
+  await withButtonLoading(saveBtn, 'Saving rules…', async () => {
+    await fetchJson('/api/config/rules', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        rules: {
+          keywords,
+          blockAllLinks: blockAllLinksInput.checked,
+          matchMode: matchModeInput.value,
+          dryRun: dryRunInput.checked,
+          wordBoundaryKeywords: wordBoundaryInput.checked,
+        },
+        commands: {
+          enabled: true,
+          spam: spamCommandInput.value.trim() || '!spam',
+          deleteCommandMessage: true,
+        },
+      }),
+    });
 
-  rulesSavedNotice.classList.remove('hidden');
-  setTimeout(() => rulesSavedNotice.classList.add('hidden'), 2500);
-  await loadStatus();
-  await loadLogs();
+    rulesSavedNotice.classList.remove('hidden');
+    setTimeout(() => rulesSavedNotice.classList.add('hidden'), 2000);
+    lastLogsRenderKey = null;
+    await loadStatus();
+    await loadLogs();
+  });
 }
 
 async function refreshAll() {
@@ -399,17 +469,31 @@ async function refreshAll() {
   renderStatus(status);
 }
 
-document.getElementById('refreshGroupsBtn').addEventListener('click', () => {
-  loadGroups(true)
-    .then(() => loadStatus())
-    .catch((error) => alert(error.message));
+const refreshGroupsBtn = document.getElementById('refreshGroupsBtn');
+const refreshLogsBtn = document.getElementById('refreshLogsBtn');
+const saveRulesBtn = document.getElementById('saveRulesBtn');
+
+refreshGroupsBtn.addEventListener('click', () => {
+  withButtonLoading(refreshGroupsBtn, 'Refreshing groups…', async () => {
+    lastGroupsRenderKey = null;
+    await loadGroups(true);
+    await loadStatus();
+  }).catch(() => {});
 });
-document.getElementById('refreshLogsBtn').addEventListener('click', loadLogs);
-document.getElementById('saveRulesBtn').addEventListener('click', () => {
-  saveRules().catch((error) => alert(error.message));
+
+refreshLogsBtn.addEventListener('click', () => {
+  withButtonLoading(refreshLogsBtn, 'Refreshing logs…', async () => {
+    lastLogsRenderKey = null;
+    await loadLogs();
+  }).catch(() => {});
+});
+
+saveRulesBtn.addEventListener('click', () => {
+  saveRules().catch(() => {});
 });
 groupFilter.addEventListener('change', () => {
-  loadLogs().catch((error) => alert(error.message));
+  lastLogsRenderKey = null;
+  loadLogs().catch((error) => showPageFeedback(error.message, 'error'));
 });
 
 Promise.all([refreshAll(), loadRules()]).catch((error) => {

@@ -1,6 +1,7 @@
 const AUTOMATION_ID = 'whatsapp-spam-guard';
 let lastEmbedUrl = null;
 let lastControlSnapshot = null;
+let controlBusy = false;
 
 async function fetchJson(url, options) {
   const response = await fetch(url, options);
@@ -28,6 +29,75 @@ function controlSnapshot(automation) {
   ].join('|');
 }
 
+function actionLabel(action) {
+  const labels = {
+    start: 'Starting',
+    stop: 'Stopping',
+    pause: 'Pausing',
+    resume: 'Resuming',
+  };
+  return labels[action] || action;
+}
+
+function actionDoneLabel(action) {
+  const labels = {
+    start: 'Started',
+    stop: 'Stopped',
+    pause: 'Paused',
+    resume: 'Resumed',
+  };
+  return labels[action] || 'Done';
+}
+
+function showFeedback(message, type = 'info') {
+  const el = document.getElementById('hubFeedback');
+  if (!el) {
+    return;
+  }
+
+  el.textContent = message;
+  el.className = `hub-feedback ${type} visible`;
+
+  clearTimeout(showFeedback.timer);
+  showFeedback.timer = setTimeout(() => {
+    el.classList.remove('visible');
+  }, 2800);
+}
+
+function setControlsBusy(busy) {
+  controlBusy = busy;
+  document.querySelectorAll('[data-control-btn]').forEach((button) => {
+    button.disabled = busy;
+    button.classList.toggle('loading', busy);
+  });
+}
+
+function createIconButton({ icon, title, className, onClick, href, dataset = {} }) {
+  const element = href ? document.createElement('a') : document.createElement('button');
+
+  element.className = `btn icon-btn ${className || ''}`.trim();
+  element.innerHTML = icon;
+  element.title = title;
+  element.setAttribute('aria-label', title);
+
+  if (href) {
+    element.href = href;
+  } else {
+    element.type = 'button';
+    element.addEventListener('click', onClick);
+  }
+
+  Object.entries(dataset).forEach(([key, value]) => {
+    element.dataset[key] = value;
+  });
+
+  if (!href) {
+    element.dataset.controlBtn = '1';
+  }
+
+  return element;
+}
+
 function renderControls(container, automation, options = {}) {
   const { showOpenPage = false } = options;
   container.innerHTML = '';
@@ -35,42 +105,50 @@ function renderControls(container, automation, options = {}) {
   if (automation.type === 'placeholder') {
     const label = document.createElement('span');
     label.className = 'control-hint';
-    label.textContent = 'Not available yet';
+    label.textContent = 'Coming soon';
     container.appendChild(label);
     return;
   }
 
-  const powerBtn = document.createElement('button');
   if (automation.canStart) {
-    powerBtn.className = 'btn primary';
-    powerBtn.innerHTML = '<span class="btn-icon">▶</span> Start';
-    powerBtn.onclick = () => controlAutomation(automation.id, 'start');
+    container.appendChild(createIconButton({
+      icon: HubIcons.start,
+      title: 'Start',
+      className: 'primary',
+      onClick: () => controlAutomation(automation.id, 'start'),
+    }));
   } else {
-    powerBtn.className = 'btn danger';
-    powerBtn.innerHTML = '<span class="btn-icon">■</span> Stop';
-    powerBtn.onclick = () => controlAutomation(automation.id, 'stop');
+    container.appendChild(createIconButton({
+      icon: HubIcons.stop,
+      title: 'Stop',
+      className: 'danger',
+      onClick: () => controlAutomation(automation.id, 'stop'),
+    }));
   }
-  container.appendChild(powerBtn);
 
   if (automation.canPause || automation.canResume) {
-    const pauseBtn = document.createElement('button');
-    pauseBtn.className = 'btn warning';
-    if (automation.canResume) {
-      pauseBtn.innerHTML = '<span class="btn-icon">⏵</span> Resume';
-      pauseBtn.onclick = () => controlAutomation(automation.id, 'resume');
-    } else {
-      pauseBtn.innerHTML = '<span class="btn-icon">⏸</span> Pause';
-      pauseBtn.onclick = () => controlAutomation(automation.id, 'pause');
-    }
-    container.appendChild(pauseBtn);
+    container.appendChild(createIconButton({
+      icon: automation.canResume ? HubIcons.resume : HubIcons.pause,
+      title: automation.canResume ? 'Resume' : 'Pause',
+      className: 'warning',
+      onClick: () => controlAutomation(
+        automation.id,
+        automation.canResume ? 'resume' : 'pause',
+      ),
+    }));
   }
 
   if (showOpenPage && automation.detailPath) {
-    const openBtn = document.createElement('a');
-    openBtn.className = 'btn secondary';
-    openBtn.textContent = 'Open';
-    openBtn.href = automation.detailPath;
-    container.appendChild(openBtn);
+    container.appendChild(createIconButton({
+      icon: HubIcons.open,
+      title: 'Open page',
+      className: 'ghost',
+      href: automation.detailPath,
+    }));
+  }
+
+  if (controlBusy) {
+    setControlsBusy(true);
   }
 }
 
@@ -80,7 +158,7 @@ function renderAutomationCard(automation) {
 
   card.innerHTML = `
     <div class="automation-icon">${automation.icon || '⚙️'}</div>
-    <div>
+    <div class="automation-body">
       <div class="automation-title-row">
         <strong>${escapeHtml(automation.name)}</strong>
         <span class="status-badge ${statusClass(automation.status)}">${escapeHtml(automation.statusLabel)}</span>
@@ -106,9 +184,36 @@ function escapeHtml(value) {
     .replaceAll("'", '&#39;');
 }
 
+function withEmbedParam(url) {
+  if (!url || url === 'about:blank') {
+    return url;
+  }
+
+  const parsed = new URL(url);
+  parsed.searchParams.set('embed', '1');
+  return parsed.toString();
+}
+
 async function controlAutomation(id, action) {
-  await fetchJson(`/api/automations/${id}/${action}`, { method: 'POST' });
-  await refreshHub();
+  setControlsBusy(true);
+  showFeedback(`${actionLabel(action)}…`, 'loading');
+
+  try {
+    await fetchJson(`/api/automations/${id}/${action}`, { method: 'POST' });
+    lastControlSnapshot = null;
+    const automations = await refreshHub();
+    showFeedback(`${actionDoneLabel(action)} successfully`, 'success');
+
+    if (document.getElementById('guardControls')) {
+      renderWhatsAppGuardPage(automations);
+    } else {
+      renderDashboard(automations);
+    }
+  } catch (error) {
+    showFeedback(error.message, 'error');
+  } finally {
+    setControlsBusy(false);
+  }
 }
 
 async function refreshHub() {
@@ -154,7 +259,7 @@ function renderDashboard(automations) {
 }
 
 function setEmbedFrame(frame, url) {
-  const nextUrl = url || 'about:blank';
+  const nextUrl = withEmbedParam(url || 'about:blank');
 
   if (nextUrl === lastEmbedUrl) {
     return;
@@ -194,18 +299,18 @@ function renderWhatsAppGuardPage(automations) {
     notice.classList.add('hidden');
   } else if (automation.status === 'starting') {
     setEmbedFrame(frame, 'about:blank');
-    notice.textContent = 'Bot is starting. The dashboard will appear in a few seconds...';
+    notice.textContent = 'Starting bot… dashboard loads in a few seconds.';
     notice.classList.remove('hidden');
   } else if (automation.status === 'paused') {
-    if (automation.dashboardUrl && lastEmbedUrl !== automation.dashboardUrl) {
+    if (automation.dashboardUrl && lastEmbedUrl !== withEmbedParam(automation.dashboardUrl)) {
       setEmbedFrame(frame, automation.dashboardUrl);
     }
-    notice.textContent = 'Paused — moderation is off, dashboard stays open.';
+    notice.textContent = 'Paused — moderation off, dashboard stays open.';
     notice.classList.remove('hidden');
   } else {
     setEmbedFrame(frame, 'about:blank');
     lastEmbedUrl = null;
-    notice.textContent = 'Press Start to load the WhatsApp Spam Guard dashboard.';
+    notice.textContent = 'Press Start to load the dashboard.';
     notice.classList.remove('hidden');
   }
 }
@@ -214,7 +319,13 @@ function initHubPage({ mode }) {
   const refreshBtn = document.getElementById('refreshBtn');
   const guardRefreshBtn = document.getElementById('guardRefreshBtn');
 
-  async function tick() {
+  async function tick(options = {}) {
+    const { quiet = false } = options;
+
+    if (!quiet) {
+      showFeedback('Refreshing…', 'loading');
+    }
+
     try {
       const automations = await refreshHub();
 
@@ -223,22 +334,27 @@ function initHubPage({ mode }) {
       } else if (mode === 'whatsapp-guard') {
         renderWhatsAppGuardPage(automations);
       }
+
+      if (!quiet) {
+        showFeedback('Updated', 'success');
+      }
     } catch (error) {
       if (mode === 'dashboard') {
         document.getElementById('automationList').innerHTML = `<div class="notice">${escapeHtml(error.message)}</div>`;
       }
+      showFeedback(error.message, 'error');
     }
   }
 
   if (refreshBtn) {
-    refreshBtn.addEventListener('click', tick);
+    refreshBtn.addEventListener('click', () => tick());
   }
 
   if (guardRefreshBtn) {
-    guardRefreshBtn.addEventListener('click', tick);
+    guardRefreshBtn.addEventListener('click', () => tick());
   }
 
-  tick();
+  tick({ quiet: true });
 }
 
 window.initHubPage = initHubPage;
