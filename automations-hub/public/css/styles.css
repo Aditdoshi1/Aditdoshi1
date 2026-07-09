@@ -104,8 +104,6 @@ h2 {
 .sidebar-head {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 0.35rem;
   padding: 0.25rem 0.35rem 0.65rem;
   flex-shrink: 0;
 }
@@ -157,40 +155,40 @@ h2 {
   white-space: nowrap;
 }
 
-.sidebar-pin {
-  width: 26px;
-  height: 26px;
+.sidebar-footer {
+  flex-shrink: 0;
+  display: flex;
+  gap: 0.35rem;
+  padding-top: 0.55rem;
+  margin-top: auto;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.sidebar-footer-btn {
+  flex: 1;
+  height: 32px;
   border: none;
-  border-radius: 7px;
+  border-radius: 8px;
   background: rgba(255, 255, 255, 0.06);
-  color: rgba(248, 250, 252, 0.75);
+  color: rgba(248, 250, 252, 0.8);
   display: grid;
   place-items: center;
   cursor: pointer;
   padding: 0;
-  flex-shrink: 0;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.15s ease, background 0.15s ease;
+  transition: background 0.15s ease, color 0.15s ease;
 }
 
-.sidebar-pin svg {
-  width: 14px;
-  height: 14px;
+.sidebar-footer-btn svg {
+  width: 16px;
+  height: 16px;
 }
 
-.sidebar:not(.pinned):hover .sidebar-pin,
-.sidebar.pinned .sidebar-pin {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-.sidebar-pin:hover {
+.sidebar-footer-btn:hover {
   background: rgba(255, 255, 255, 0.12);
   color: #fff;
 }
 
-.sidebar-pin.active {
+.sidebar-footer-btn.active {
   background: rgba(37, 99, 235, 0.35);
   color: #fff;
 }
@@ -256,43 +254,12 @@ h2 {
   opacity: 1;
 }
 
-.sidebar-footer {
-  flex-shrink: 0;
-  padding-top: 0.55rem;
-  margin-top: auto;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-.sidebar-footer-btn {
-  width: 100%;
-  height: 32px;
-  border: none;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.06);
-  color: rgba(248, 250, 252, 0.8);
-  display: grid;
-  place-items: center;
-  cursor: pointer;
-  padding: 0;
-  transition: background 0.15s ease, color 0.15s ease;
-}
-
-.sidebar-footer-btn svg {
-  width: 16px;
-  height: 16px;
-}
-
-.sidebar-footer-btn:hover {
-  background: rgba(255, 255, 255, 0.12);
-  color: #fff;
-}
-
-.sidebar.pinned:not(.collapsed) .sidebar-footer-btn svg {
+.sidebar.pinned:not(.collapsed) #sidebarToggle svg {
   transform: rotate(0deg);
 }
 
-.sidebar.pinned.collapsed .sidebar-footer-btn svg,
-.sidebar:not(.pinned) .sidebar-footer-btn svg {
+.sidebar.pinned.collapsed #sidebarToggle svg,
+.sidebar:not(.pinned) #sidebarToggle svg {
   transform: rotate(180deg);
 }
 
