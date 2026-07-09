@@ -433,6 +433,25 @@ h2 {
   gap: 0.35rem;
 }
 
+.page-header .subtitle,
+.control-toolbar .subtitle,
+.toolbar-subtitle {
+  margin-top: 0.1rem;
+  font-size: 0.75rem;
+  color: var(--text-soft);
+}
+
+.toolbar-title h1 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.toolbar-title {
+  min-width: 0;
+}
+
 .toolbar-icon {
   width: 28px;
   height: 28px;
