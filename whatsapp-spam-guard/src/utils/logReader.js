@@ -34,6 +34,19 @@ function readModerationLogs({ limit = 100, groupId, groupName } = {}) {
   return entries.reverse().slice(0, limit);
 }
 
+function getModeratedGroupNames() {
+  const names = new Set();
+
+  for (const entry of readModerationLogs({ limit: 1000 })) {
+    if (entry.groupName) {
+      names.add(entry.groupName);
+    }
+  }
+
+  return [...names].sort((a, b) => a.localeCompare(b));
+}
+
 module.exports = {
   readModerationLogs,
+  getModeratedGroupNames,
 };

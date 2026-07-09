@@ -61,6 +61,16 @@ function countActiveMonitoredGroups(visibleGroups) {
   return (visibleGroups || []).filter((group) => group.monitored).length;
 }
 
+function countEffectiveMonitoredGroups(monitoredGroups, visibleGroups) {
+  const visible = visibleGroups || [];
+
+  if (!visible.length) {
+    return 0;
+  }
+
+  return countActiveMonitoredGroups(visible);
+}
+
 module.exports = {
   isMonitoredGroupId,
   isMonitoredGroupName,
@@ -68,4 +78,5 @@ module.exports = {
   sortGroupsMonitoredFirst,
   getOrphanedMonitoredGroups,
   countActiveMonitoredGroups,
+  countEffectiveMonitoredGroups,
 };

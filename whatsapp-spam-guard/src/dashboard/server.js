@@ -4,13 +4,13 @@ const QRCode = require('qrcode');
 
 const { botState, emitConfigChange } = require('../botState');
 const { loadConfig, updateMonitoredGroups, updateSettings } = require('../utils/config');
-const { readModerationLogs } = require('../utils/logReader');
+const { readModerationLogs, getModeratedGroupNames } = require('../utils/logReader');
 const { normalizeId, isBotGroupAdmin } = require('../utils/isAdmin');
 const {
   isGroupMonitored,
   sortGroupsMonitoredFirst,
   getOrphanedMonitoredGroups,
-  countActiveMonitoredGroups,
+  countEffectiveMonitoredGroups,
 } = require('../utils/monitoredGroups');
 const { logInfo, logError } = require('../utils/logger');
 const {
@@ -45,7 +45,13 @@ async function fetchWhatsAppGroups(forceRefresh = false) {
 
   const cached = getCachedGroups();
   if (!forceRefresh && cached && !cached.stale && cached.groups.length) {
-    return cached.groups;
+    const monitoredGroups = botState.config?.monitoredGroups || loadConfig().monitoredGroups;
+    return sortGroupsMonitoredFirst(
+      cached.groups.map((group) => ({
+        ...group,
+        monitored: isGroupMonitored(group, monitoredGroups),
+      })),
+    );
   }
 
   return runClientTask(async () => {
@@ -111,7 +117,7 @@ function createDashboardApp() {
     const cached = getCachedGroups();
     const visibleGroups = cached?.groups || [];
     const monitoredGroups = config.monitoredGroups || [];
-    const monitoredActiveCount = countActiveMonitoredGroups(visibleGroups);
+    const monitoredActiveCount = countEffectiveMonitoredGroups(monitoredGroups, visibleGroups);
     const orphanedMonitoredGroups = getOrphanedMonitoredGroups(monitoredGroups, visibleGroups);
 
     res.json({
@@ -175,6 +181,7 @@ function createDashboardApp() {
 
     res.json({
       entries: readModerationLogs({ limit, groupId, groupName }),
+      groupNames: getModeratedGroupNames(),
     });
   });
 
@@ -203,7 +210,10 @@ function createDashboardApp() {
         cachedAt: cached?.fetchedAt || null,
         cacheTtlMs: CACHE_TTL_MS,
         stale,
-        monitoredActiveCount: countActiveMonitoredGroups(groups),
+        monitoredActiveCount: countEffectiveMonitoredGroups(
+          botState.config?.monitoredGroups || loadConfig().monitoredGroups,
+          groups,
+        ),
         orphanedMonitoredGroups: getOrphanedMonitoredGroups(
           botState.config?.monitoredGroups || loadConfig().monitoredGroups,
           groups,

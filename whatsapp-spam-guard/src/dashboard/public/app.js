@@ -21,7 +21,16 @@ const spamCommandInput = document.getElementById('spamCommandInput');
 const rulesSavedNotice = document.getElementById('rulesSavedNotice');
 
 let cachedAdminGroups = [];
-const knownLogGroupNames = new Set();
+
+function sortGroupsForDisplay(groups) {
+  return [...groups].sort((a, b) => {
+    if (a.monitored !== b.monitored) {
+      return a.monitored ? -1 : 1;
+    }
+
+    return a.name.localeCompare(b.name);
+  });
+}
 
 async function fetchJson(url, options) {
   const controller = new AbortController();
@@ -71,14 +80,12 @@ function renderStatus(status) {
     layout.classList.remove('connected');
   }
 
-  const monitoredCount = Number.isInteger(status.monitoredActiveCount)
-    ? status.monitoredActiveCount
-    : status.monitoredGroups.length;
+  const monitoredCount = status.monitoredActiveCount ?? 0;
   const orphanedCount = status.orphanedMonitoredGroups?.length || 0;
 
   let meta = `Dry run: ${status.dryRun ? 'ON' : 'OFF'} · Monitoring ${monitoredCount} group(s)`;
   if (orphanedCount > 0) {
-    meta += ` · ${orphanedCount} configured but not visible`;
+    meta += ` · ${orphanedCount} hidden config entr${orphanedCount === 1 ? 'y' : 'ies'} (remove below)`;
   }
   statusMeta.textContent = meta;
 }
@@ -142,7 +149,7 @@ function renderGroups(groups, ready, orphanedMonitoredGroups = []) {
     return;
   }
 
-  for (const group of groups) {
+  for (const group of sortGroupsForDisplay(groups)) {
     appendGroupItem(group);
   }
 
@@ -262,34 +269,23 @@ function renderLogs(entries) {
   }
 }
 
-function rememberGroupNames(groups, entries) {
-  for (const group of groups) {
-    if (group.name) {
-      knownLogGroupNames.add(group.name);
-    }
-  }
-
-  for (const entry of entries) {
-    if (entry.groupName) {
-      knownLogGroupNames.add(entry.groupName);
-    }
-  }
-}
-
-function renderGroupFilterOptions() {
+function renderGroupFilterOptions(groupNames) {
   const previous = groupFilter.value;
+  const names = [...new Set(groupNames || [])].sort((a, b) => a.localeCompare(b));
 
   groupFilter.innerHTML = '<option value="">All groups</option>';
 
-  [...knownLogGroupNames].sort().forEach((name) => {
+  names.forEach((name) => {
     const option = document.createElement('option');
     option.value = name;
     option.textContent = name;
     groupFilter.appendChild(option);
   });
 
-  if (previous && knownLogGroupNames.has(previous)) {
+  if (previous && names.includes(previous)) {
     groupFilter.value = previous;
+  } else if (previous && !names.includes(previous)) {
+    groupFilter.value = '';
   }
 }
 
@@ -313,9 +309,7 @@ async function loadGroups(forceRefresh = false) {
   try {
     const url = forceRefresh ? '/api/groups?refresh=1' : '/api/groups';
     const data = await fetchJson(url);
-    cachedAdminGroups = data.groups || [];
-    rememberGroupNames(cachedAdminGroups, []);
-    renderGroupFilterOptions();
+    cachedAdminGroups = sortGroupsForDisplay(data.groups || []);
     renderGroups(cachedAdminGroups, data.ready, data.orphanedMonitoredGroups || []);
     return cachedAdminGroups;
   } catch (error) {
@@ -327,8 +321,7 @@ async function loadGroups(forceRefresh = false) {
 
 async function loadAllLogEntries() {
   const data = await fetchJson('/api/logs?limit=100');
-  rememberGroupNames([], data.entries);
-  renderGroupFilterOptions();
+  renderGroupFilterOptions(data.groupNames || []);
   return data.entries;
 }
 
@@ -340,6 +333,7 @@ async function loadLogs() {
   }
 
   const data = await fetchJson(`/api/logs?${params.toString()}`);
+  renderGroupFilterOptions(data.groupNames || []);
   renderLogs(data.entries);
   return data.entries;
 }
@@ -388,8 +382,8 @@ async function saveRules() {
 }
 
 async function refreshAll() {
-  const status = await loadStatus();
   await loadGroups();
+  const status = await loadStatus();
   await loadAllLogEntries();
   await loadLogs();
   renderStatus(status);
