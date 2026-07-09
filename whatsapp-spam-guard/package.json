@@ -19,7 +19,8 @@
     "test:admin": "node src/test/isAdmin.test.js",
     "test:learn": "node src/test/learnKeywords.test.js",
     "test:delete": "node src/test/deleteMessage.test.js",
-    "test": "npm run test:classifier && npm run test:moderator && npm run test:config && npm run test:manual && npm run test:admin && npm run test:learn && npm run test:delete"
+    "test:monitored": "node src/test/monitoredGroups.test.js",
+    "test": "npm run test:classifier && npm run test:moderator && npm run test:config && npm run test:manual && npm run test:admin && npm run test:learn && npm run test:delete && npm run test:monitored"
   },
   "engines": {
     "node": ">=20"

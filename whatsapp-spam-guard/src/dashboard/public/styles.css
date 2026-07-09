@@ -248,6 +248,20 @@ select {
   background: var(--input-bg);
 }
 
+.group-item.monitored {
+  border-color: rgba(18, 140, 126, 0.45);
+  background: rgba(18, 140, 126, 0.06);
+}
+
+.group-item.orphaned {
+  border-style: dashed;
+  background: #fff8eb;
+}
+
+.remove-orphan-btn {
+  flex-shrink: 0;
+}
+
 .group-meta {
   display: flex;
   flex-direction: column;

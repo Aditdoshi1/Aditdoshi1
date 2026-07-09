@@ -68,7 +68,16 @@ function renderStatus(status) {
     layout.classList.remove('connected');
   }
 
-  statusMeta.textContent = `Dry run: ${status.dryRun ? 'ON' : 'OFF'} · Monitoring ${status.monitoredGroups.length} group(s)`;
+  const monitoredCount = Number.isInteger(status.monitoredActiveCount)
+    ? status.monitoredActiveCount
+    : status.monitoredGroups.length;
+  const orphanedCount = status.orphanedMonitoredGroups?.length || 0;
+
+  let meta = `Dry run: ${status.dryRun ? 'ON' : 'OFF'} · Monitoring ${monitoredCount} group(s)`;
+  if (orphanedCount > 0) {
+    meta += ` · ${orphanedCount} configured but not visible`;
+  }
+  statusMeta.textContent = meta;
 }
 
 async function loadQr(status) {
@@ -109,7 +118,7 @@ async function loadQr(status) {
   }
 }
 
-function renderGroups(groups, ready) {
+function renderGroups(groups, ready, orphanedMonitoredGroups = []) {
   groupsList.innerHTML = '';
 
   if (!ready) {
@@ -120,54 +129,105 @@ function renderGroups(groups, ready) {
 
   groupsNotice.classList.add('hidden');
 
-  if (!groups.length) {
+  if (orphanedMonitoredGroups.length) {
+    groupsNotice.classList.remove('hidden');
+    groupsNotice.textContent = `${orphanedMonitoredGroups.length} configured group(s) are not shown because you are not an admin there, or the group name no longer matches. Remove them below.`;
+  }
+
+  if (!groups.length && !orphanedMonitoredGroups.length) {
     groupsList.innerHTML = '<div class="empty-state">No admin groups found. You must be a group admin for the bot to delete spam and remove users.</div>';
     return;
   }
 
   for (const group of groups) {
-    const item = document.createElement('div');
-    item.className = 'group-item';
-
-    item.innerHTML = `
-      <div class="group-meta">
-        <div class="group-name">${escapeHtml(group.name)}</div>
-        <div class="group-id">${escapeHtml(group.id)}</div>
-        <div class="group-count">${group.participantCount} members</div>
-      </div>
-      <label class="toggle" title="Monitor this group">
-        <input type="checkbox" ${group.monitored ? 'checked' : ''}>
-        <span class="toggle-slider"></span>
-      </label>
-    `;
-
-    const checkbox = item.querySelector('input');
-    checkbox.addEventListener('change', async () => {
-      checkbox.disabled = true;
-
-      try {
-        await fetchJson('/api/config/groups/toggle', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            id: group.id,
-            name: group.name,
-            monitored: checkbox.checked,
-          }),
-        });
-
-        await loadStatus();
-        await loadLogs();
-      } catch (error) {
-        checkbox.checked = !checkbox.checked;
-        alert(error.message);
-      } finally {
-        checkbox.disabled = false;
-      }
-    });
-
-    groupsList.appendChild(item);
+    appendGroupItem(group);
   }
+
+  for (const entry of orphanedMonitoredGroups) {
+    appendOrphanedGroupItem(entry);
+  }
+}
+
+function appendGroupItem(group) {
+  const item = document.createElement('div');
+  item.className = `group-item${group.monitored ? ' monitored' : ''}`;
+
+  item.innerHTML = `
+    <div class="group-meta">
+      <div class="group-name">${escapeHtml(group.name)}</div>
+      <div class="group-id">${escapeHtml(group.id)}</div>
+      <div class="group-count">${group.participantCount} members</div>
+    </div>
+    <label class="toggle" title="Monitor this group">
+      <input type="checkbox" ${group.monitored ? 'checked' : ''}>
+      <span class="toggle-slider"></span>
+    </label>
+  `;
+
+  const checkbox = item.querySelector('input');
+  checkbox.addEventListener('change', async () => {
+    checkbox.disabled = true;
+
+    try {
+      await fetchJson('/api/config/groups/toggle', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: group.id,
+          name: group.name,
+          monitored: checkbox.checked,
+        }),
+      });
+
+      await loadStatus();
+      await loadGroups();
+      await loadLogs();
+    } catch (error) {
+      checkbox.checked = !checkbox.checked;
+      alert(error.message);
+    } finally {
+      checkbox.disabled = false;
+    }
+  });
+
+  groupsList.appendChild(item);
+}
+
+function appendOrphanedGroupItem(entry) {
+  const item = document.createElement('div');
+  item.className = 'group-item orphaned';
+
+  const label = entry.name || entry.id || 'Unknown group';
+
+  item.innerHTML = `
+    <div class="group-meta">
+      <div class="group-name">${escapeHtml(label)}</div>
+      <div class="group-id">${entry.id ? escapeHtml(entry.id) : 'Name-only config entry'}</div>
+      <div class="group-count">Configured · not visible in your admin groups</div>
+    </div>
+    <button type="button" class="btn secondary remove-orphan-btn">Remove</button>
+  `;
+
+  item.querySelector('.remove-orphan-btn').addEventListener('click', async () => {
+    try {
+      await fetchJson('/api/config/groups/toggle', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: entry.id,
+          name: entry.name,
+          monitored: false,
+        }),
+      });
+
+      await loadStatus();
+      await loadGroups();
+    } catch (error) {
+      alert(error.message);
+    }
+  });
+
+  groupsList.appendChild(item);
 }
 
 function renderLogs(entries) {
@@ -249,7 +309,7 @@ async function loadGroups(forceRefresh = false) {
   try {
     const url = forceRefresh ? '/api/groups?refresh=1' : '/api/groups';
     const data = await fetchJson(url);
-    renderGroups(data.groups, data.ready);
+    renderGroups(data.groups, data.ready, data.orphanedMonitoredGroups || []);
     return data.groups;
   } catch (error) {
     groupsNotice.classList.remove('hidden');
@@ -317,6 +377,7 @@ async function refreshAll() {
   const [status, entries] = await Promise.all([
     loadStatus(),
     loadLogs(),
+    loadGroups(),
   ]);
 
   updateGroupFilter([], entries);

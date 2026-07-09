@@ -6,6 +6,12 @@ const { botState, emitConfigChange } = require('../botState');
 const { loadConfig, updateMonitoredGroups, updateSettings } = require('../utils/config');
 const { readModerationLogs } = require('../utils/logReader');
 const { normalizeId, isBotGroupAdmin } = require('../utils/isAdmin');
+const {
+  isGroupMonitored,
+  sortGroupsMonitoredFirst,
+  getOrphanedMonitoredGroups,
+  countActiveMonitoredGroups,
+} = require('../utils/monitoredGroups');
 const { logInfo, logError } = require('../utils/logger');
 const {
   getDashboardHost,
@@ -16,30 +22,6 @@ const {
 } = require('../utils/dashboardUrl');
 const { runClientTask, DEFAULT_TIMEOUT_MS } = require('../utils/clientQueue');
 const { getCachedGroups, setCachedGroups, clearGroupCache, CACHE_TTL_MS } = require('../utils/groupCache');
-
-function isMonitoredGroupId(groupId, monitoredGroups) {
-  const normalizedId = normalizeId(groupId);
-
-  return (monitoredGroups || []).some((group) => {
-    if (group.id && normalizeId(group.id) === normalizedId) {
-      return true;
-    }
-
-    return false;
-  });
-}
-
-function isMonitoredGroupName(groupName, monitoredGroups) {
-  const normalizedName = (groupName || '').trim().toLowerCase();
-
-  return (monitoredGroups || []).some((group) => {
-    if (group.name && group.name.trim().toLowerCase() === normalizedName) {
-      return true;
-    }
-
-    return false;
-  });
-}
 
 async function loadGroupChat(client, chat) {
   try {
@@ -90,15 +72,14 @@ async function fetchWhatsAppGroups(forceRefresh = false) {
           id,
           name,
           participantCount: groupChat.participants?.length || 0,
-          monitored: isMonitoredGroupId(id, monitoredGroups)
-            || isMonitoredGroupName(name, monitoredGroups),
+          monitored: isGroupMonitored({ id, name }, monitoredGroups),
         });
       } catch (error) {
         logError(`Failed to inspect group ${chat.name || chat.id}`, error);
       }
     }
 
-    const sorted = groups.sort((a, b) => a.name.localeCompare(b.name));
+    const sorted = sortGroupsMonitoredFirst(groups);
     setCachedGroups(sorted);
     return sorted;
   }, 'list-groups', Math.min(DEFAULT_TIMEOUT_MS, 20000));
@@ -127,6 +108,11 @@ function createDashboardApp() {
 
   app.get('/api/status', (_req, res) => {
     const config = botState.config || loadConfig();
+    const cached = getCachedGroups();
+    const visibleGroups = cached?.groups || [];
+    const monitoredGroups = config.monitoredGroups || [];
+    const monitoredActiveCount = countActiveMonitoredGroups(visibleGroups);
+    const orphanedMonitoredGroups = getOrphanedMonitoredGroups(monitoredGroups, visibleGroups);
 
     res.json({
       ready: botState.ready,
@@ -138,7 +124,9 @@ function createDashboardApp() {
       dryRun: config.rules?.dryRun ?? true,
       rules: config.rules || {},
       commands: config.commands || {},
-      monitoredGroups: config.monitoredGroups || [],
+      monitoredGroups,
+      monitoredActiveCount,
+      orphanedMonitoredGroups,
       keywords: config.rules?.keywords || [],
     });
   });
@@ -215,6 +203,11 @@ function createDashboardApp() {
         cachedAt: cached?.fetchedAt || null,
         cacheTtlMs: CACHE_TTL_MS,
         stale,
+        monitoredActiveCount: countActiveMonitoredGroups(groups),
+        orphanedMonitoredGroups: getOrphanedMonitoredGroups(
+          botState.config?.monitoredGroups || loadConfig().monitoredGroups,
+          groups,
+        ),
       });
     } catch (error) {
       logError('Failed to list WhatsApp groups', error);
