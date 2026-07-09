@@ -397,7 +397,66 @@ h2 {
 .toolbar-right {
   display: flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.45rem;
+}
+
+.bot-status-card {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.4rem 0.65rem;
+  border-radius: 9px;
+  background: var(--surface-soft);
+  border: 1px solid var(--border);
+  max-width: 280px;
+}
+
+.bot-status-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--neutral);
+  flex-shrink: 0;
+}
+
+.bot-status-dot.ready {
+  background: var(--success);
+}
+
+.bot-status-dot.reconnecting {
+  background: var(--warning);
+  animation: pulse-dot 1.2s ease-in-out infinite;
+}
+
+.bot-status-dot.error,
+.bot-status-dot.offline {
+  background: var(--neutral);
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+#botStatusText {
+  font-size: 0.82rem;
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.bot-status-meta {
+  font-size: 0.72rem;
+  color: var(--text-soft);
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 240px;
+}
+
+.bot-status-copy {
+  min-width: 0;
 }
 
 .page-header .subtitle,

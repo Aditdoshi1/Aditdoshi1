@@ -524,19 +524,17 @@ th {
   width: 100%;
 }
 
-/* Embedded in Automation Hub */
-body.embedded .header-title {
+/* Embedded in Automation Hub — hide duplicate header/status */
+body.embedded .header {
   display: none;
 }
 
-body.embedded .header {
-  justify-content: flex-end;
-  min-height: 44px;
-  padding: 0.45rem 0.75rem;
+body.embedded .layout {
+  padding-top: 0.65rem;
 }
 
-body.embedded {
-  --header-height: 44px;
+body.embedded .layout.connected {
+  height: 100vh;
 }
 
 .qr-wrap {

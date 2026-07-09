@@ -205,7 +205,8 @@ async function controlAutomation(id, action) {
     showFeedback(`${actionDoneLabel(action)} successfully`, 'success');
 
     if (document.getElementById('guardControls')) {
-      renderWhatsAppGuardPage(automations);
+      const botStatus = await fetchBotStatus();
+      renderWhatsAppGuardPage(automations, botStatus);
     } else {
       renderDashboard(automations);
     }
@@ -269,7 +270,68 @@ function setEmbedFrame(frame, url) {
   lastEmbedUrl = nextUrl;
 }
 
-function renderWhatsAppGuardPage(automations) {
+function renderBotConnectionStatus(automation, botStatus) {
+  const card = document.getElementById('botStatusCard');
+  const dot = document.getElementById('botStatusDot');
+  const text = document.getElementById('botStatusText');
+  const meta = document.getElementById('botStatusMeta');
+
+  if (!card || !dot || !text || !meta) {
+    return;
+  }
+
+  dot.classList.remove('ready', 'reconnecting', 'error', 'offline');
+
+  if (!automation || automation.status === 'stopped') {
+    dot.classList.add('offline');
+    text.textContent = 'Bot offline';
+    meta.textContent = 'Press Start to launch';
+    return;
+  }
+
+  if (automation.status === 'starting' || !botStatus?.online) {
+    dot.classList.add('reconnecting');
+    text.textContent = botStatus?.message || 'Dashboard starting…';
+    meta.textContent = '';
+    return;
+  }
+
+  const status = botStatus;
+
+  if (status.reconnecting) {
+    dot.classList.add('reconnecting');
+    text.textContent = 'Reconnecting to WhatsApp…';
+  } else if (status.ready) {
+    dot.classList.add('ready');
+    text.textContent = 'Bot connected';
+  } else if (status.authenticated) {
+    dot.classList.add('reconnecting');
+    text.textContent = 'Authenticated, loading chats…';
+  } else {
+    dot.classList.add('reconnecting');
+    text.textContent = 'Waiting for WhatsApp scan';
+  }
+
+  const monitoredCount = status.monitoredActiveCount ?? 0;
+  const orphanedCount = status.orphanedMonitoredGroups?.length || 0;
+  let metaText = `Dry run: ${status.dryRun ? 'ON' : 'OFF'} · Monitoring ${monitoredCount} group(s)`;
+
+  if (orphanedCount > 0) {
+    metaText += ` · ${orphanedCount} hidden config entr${orphanedCount === 1 ? 'y' : 'ies'}`;
+  }
+
+  meta.textContent = metaText;
+}
+
+async function fetchBotStatus() {
+  try {
+    return await fetchJson(`/api/automations/${AUTOMATION_ID}/bot-status`);
+  } catch {
+    return null;
+  }
+}
+
+function renderWhatsAppGuardPage(automations, botStatus = null) {
   const automation = automations.find((entry) => entry.id === AUTOMATION_ID);
   if (!automation) {
     return;
@@ -278,6 +340,8 @@ function renderWhatsAppGuardPage(automations) {
   const badge = document.getElementById('guardStatusBadge');
   badge.className = `status-badge ${statusClass(automation.status)}`;
   badge.textContent = automation.statusLabel;
+
+  renderBotConnectionStatus(automation, botStatus);
 
   const controls = document.getElementById('guardControls');
   const snapshot = controlSnapshot(automation);
@@ -332,7 +396,8 @@ function initHubPage({ mode }) {
       if (mode === 'dashboard') {
         renderDashboard(automations);
       } else if (mode === 'whatsapp-guard') {
-        renderWhatsAppGuardPage(automations);
+        const botStatus = await fetchBotStatus();
+        renderWhatsAppGuardPage(automations, botStatus);
       }
 
       if (!quiet) {

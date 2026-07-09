@@ -8,6 +8,7 @@ const {
   pauseAutomation,
   resumeAutomation,
   getAutomationLogs,
+  getBotStatus,
 } = require('./src/automationManager');
 
 const app = express();
@@ -23,6 +24,15 @@ app.get('/api/automations', async (_req, res) => {
     res.json({ automations });
   } catch (error) {
     res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/api/automations/:id/bot-status', async (req, res) => {
+  try {
+    const status = await getBotStatus(req.params.id);
+    res.json(status);
+  } catch (error) {
+    res.status(404).json({ error: error.message });
   }
 });
 

@@ -55,6 +55,73 @@ async function probeDashboard(url) {
   });
 }
 
+async function fetchBotDashboardStatus(automation) {
+  if (!automation?.dashboardUrl) {
+    return null;
+  }
+
+  return new Promise((resolve) => {
+    const req = http.get(`${automation.dashboardUrl}/api/status`, (res) => {
+      let body = '';
+
+      res.on('data', (chunk) => {
+        body += chunk;
+      });
+
+      res.on('end', () => {
+        if (res.statusCode !== 200) {
+          resolve(null);
+          return;
+        }
+
+        try {
+          resolve(JSON.parse(body));
+        } catch {
+          resolve(null);
+        }
+      });
+    });
+
+    req.on('error', () => resolve(null));
+    req.setTimeout(3000, () => {
+      req.destroy();
+      resolve(null);
+    });
+  });
+}
+
+async function getBotStatus(automationId) {
+  const automation = getAutomation(automationId);
+
+  if (!automation || automation.type === 'placeholder') {
+    throw new Error('Automation not found');
+  }
+
+  const record = getProcessRecord(automation.id);
+  const alive = isProcessAlive(record);
+
+  if (!alive) {
+    return {
+      online: false,
+      message: 'Bot not running',
+    };
+  }
+
+  const status = await fetchBotDashboardStatus(automation);
+
+  if (!status) {
+    return {
+      online: false,
+      message: 'Dashboard starting…',
+    };
+  }
+
+  return {
+    online: true,
+    ...status,
+  };
+}
+
 async function getAutomationStatus(automation) {
   if (automation.type === 'placeholder') {
     return {
@@ -253,4 +320,5 @@ module.exports = {
   pauseAutomation,
   resumeAutomation,
   getAutomationLogs,
+  getBotStatus,
 };
