@@ -11,6 +11,7 @@ const {
   sortGroupsMonitoredFirst,
   getOrphanedMonitoredGroups,
   countEffectiveMonitoredGroups,
+  applyMonitoredFlags,
 } = require('../utils/monitoredGroups');
 const { logInfo, logError } = require('../utils/logger');
 const {
@@ -46,12 +47,11 @@ async function fetchWhatsAppGroups(forceRefresh = false) {
   const cached = getCachedGroups();
   if (!forceRefresh && cached && !cached.stale && cached.groups.length) {
     const monitoredGroups = botState.config?.monitoredGroups || loadConfig().monitoredGroups;
-    return sortGroupsMonitoredFirst(
-      cached.groups.map((group) => ({
-        ...group,
-        monitored: isGroupMonitored(group, monitoredGroups),
-      })),
+    const refreshed = sortGroupsMonitoredFirst(
+      applyMonitoredFlags(cached.groups, monitoredGroups),
     );
+    setCachedGroups(refreshed);
+    return refreshed;
   }
 
   return runClientTask(async () => {

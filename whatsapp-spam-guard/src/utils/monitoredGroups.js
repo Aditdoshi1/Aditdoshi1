@@ -63,12 +63,20 @@ function countActiveMonitoredGroups(visibleGroups) {
 
 function countEffectiveMonitoredGroups(monitoredGroups, visibleGroups) {
   const visible = visibleGroups || [];
+  const configured = monitoredGroups || [];
 
-  if (!visible.length) {
-    return 0;
+  if (visible.length) {
+    return visible.filter((group) => isGroupMonitored(group, configured)).length;
   }
 
-  return countActiveMonitoredGroups(visible);
+  return configured.filter((entry) => entry.id || entry.name).length;
+}
+
+function applyMonitoredFlags(groups, monitoredGroups) {
+  return (groups || []).map((group) => ({
+    ...group,
+    monitored: isGroupMonitored(group, monitoredGroups),
+  }));
 }
 
 module.exports = {
@@ -79,4 +87,5 @@ module.exports = {
   getOrphanedMonitoredGroups,
   countActiveMonitoredGroups,
   countEffectiveMonitoredGroups,
+  applyMonitoredFlags,
 };

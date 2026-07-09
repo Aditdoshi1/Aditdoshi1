@@ -80,7 +80,9 @@ function renderStatus(status) {
     layout.classList.remove('connected');
   }
 
-  const monitoredCount = status.monitoredActiveCount ?? 0;
+  const monitoredCount = cachedAdminGroups.length
+    ? cachedAdminGroups.filter((group) => group.monitored).length
+    : (status.monitoredActiveCount ?? 0);
   const orphanedCount = status.orphanedMonitoredGroups?.length || 0;
 
   let meta = `Dry run: ${status.dryRun ? 'ON' : 'OFF'} · Monitoring ${monitoredCount} group(s)`;
@@ -189,8 +191,8 @@ function appendGroupItem(group) {
         }),
       });
 
-      await loadStatus();
       await loadGroups();
+      await loadStatus();
       await loadLogs();
     } catch (error) {
       checkbox.checked = !checkbox.checked;
@@ -390,7 +392,9 @@ async function refreshAll() {
 }
 
 document.getElementById('refreshGroupsBtn').addEventListener('click', () => {
-  loadGroups(true).catch((error) => alert(error.message));
+  loadGroups(true)
+    .then(() => loadStatus())
+    .catch((error) => alert(error.message));
 });
 document.getElementById('refreshLogsBtn').addEventListener('click', loadLogs);
 document.getElementById('saveRulesBtn').addEventListener('click', () => {

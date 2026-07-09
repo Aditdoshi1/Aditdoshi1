@@ -3,6 +3,7 @@ const {
   sortGroupsMonitoredFirst,
   getOrphanedMonitoredGroups,
   countActiveMonitoredGroups,
+  countEffectiveMonitoredGroups,
 } = require('../utils/monitoredGroups');
 
 const groups = [
@@ -16,6 +17,12 @@ assert.strictEqual(sorted[0].name, 'Beta');
 assert.strictEqual(sorted[1].name, 'Alpha');
 
 assert.strictEqual(countActiveMonitoredGroups(groups), 1);
+
+const configuredCount = countEffectiveMonitoredGroups([
+  { name: 'Beta' },
+  { name: 'My Public Group 1' },
+], groups);
+assert.strictEqual(configuredCount, 1);
 
 const orphaned = getOrphanedMonitoredGroups([
   { name: 'Beta' },
