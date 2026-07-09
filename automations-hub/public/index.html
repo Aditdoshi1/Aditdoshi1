@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Automation Hub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body class="app-shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-head">
+      <div class="brand">
+        <div class="brand-mark">⚡</div>
+        <div class="brand-text">
+          <strong>Automation Hub</strong>
+          <span>Control center</span>
+        </div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="/" class="sidebar-link active">
+        <span class="sidebar-icon">📊</span>
+        <span class="sidebar-label">Dashboard</span>
+      </a>
+      <a href="/whatsapp-guard.html" class="sidebar-link">
+        <span class="sidebar-icon">💬</span>
+        <span class="sidebar-label">WhatsApp Guard</span>
+      </a>
+      <a href="/placeholder.html" class="sidebar-link">
+        <span class="sidebar-icon">🔧</span>
+        <span class="sidebar-label">Automation 2</span>
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <button type="button" id="sidebarPin" class="sidebar-footer-btn" title="Pin sidebar" aria-label="Pin sidebar">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 3H5v5l4.5 4.5L9 17l3 3 3-3-1.5-4.5L16 8V3z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+      </button>
+      <button type="button" id="sidebarToggle" class="sidebar-footer-btn" title="Expand sidebar" aria-label="Toggle sidebar">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+  </aside>
+
+  <div class="app-main">
+    <header class="page-header">
+      <div class="page-header-text">
+        <p class="eyebrow">Overview</p>
+        <h1>Dashboard</h1>
+      </div>
+      <button id="refreshBtn" type="button" class="btn icon-btn ghost" title="Refresh" aria-label="Refresh">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.65 6.35A7.95 7.95 0 0 0 12 4a8 8 0 1 0 7.75 10h-2.1A6 6 0 1 1 12 6c1.66 0 3.14.67 4.22 1.78L13 11h7V4l-2.35 2.35z" fill="currentColor"/></svg>
+      </button>
+    </header>
+
+    <main class="page-content">
+      <section class="summary-grid" id="summaryGrid">
+        <div class="summary-card running">
+          <span class="summary-label">Running</span>
+          <strong id="countRunning">0</strong>
+        </div>
+        <div class="summary-card paused">
+          <span class="summary-label">Paused</span>
+          <strong id="countPaused">0</strong>
+        </div>
+        <div class="summary-card stopped">
+          <span class="summary-label">Stopped</span>
+          <strong id="countStopped">0</strong>
+        </div>
+        <div class="summary-card unavailable">
+          <span class="summary-label">Coming soon</span>
+          <strong id="countUnavailable">0</strong>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <h2>Automations</h2>
+        </div>
+        <div id="automationList" class="automation-list"></div>
+      </section>
+    </main>
+  </div>
+
+  <div id="hubFeedback" class="hub-feedback"></div>
+
+  <script src="/js/icons.js"></script>
+  <script src="/js/sidebar.js"></script>
+  <script src="/js/hub.js"></script>
+  <script>
+    initHubPage({ mode: 'dashboard' });
+  </script>
+</body>
+</html>

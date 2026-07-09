@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WhatsApp Spam Guard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header class="header">
+    <div class="header-title">
+      <h1>WhatsApp Spam Guard</h1>
+      <p class="subtitle">Monitor spam and choose protected groups.</p>
+    </div>
+    <div class="status-card" id="statusCard">
+      <span class="status-dot" id="statusDot"></span>
+      <div class="status-copy">
+        <div id="statusText">Connecting…</div>
+        <div class="status-meta" id="statusMeta"></div>
+      </div>
+    </div>
+  </header>
+
+  <div id="pageFeedback" class="page-feedback"></div>
+
+  <main class="layout">
+    <section class="panel connect-panel" id="connectPanel">
+      <div class="panel-header">
+        <h2>Connect WhatsApp</h2>
+      </div>
+      <div class="panel-scroll">
+        <p class="panel-help">
+          WhatsApp → Linked Devices → Link a Device, then scan this code.
+        </p>
+        <div id="connectNotice" class="notice hidden"></div>
+        <div class="qr-wrap">
+          <img id="qrImage" alt="WhatsApp QR code" class="qr-image hidden">
+          <div id="qrPlaceholder" class="empty-state">Waiting for QR code…</div>
+        </div>
+        <p class="qr-meta" id="qrMeta"></p>
+      </div>
+    </section>
+
+    <section class="panel dashboard-panel" id="dashboardPanel">
+      <div class="panel-header">
+        <h2>Monitored Groups</h2>
+        <button id="refreshGroupsBtn" type="button" class="btn icon-btn ghost" title="Refresh groups" aria-label="Refresh groups">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.65 6.35A7.95 7.95 0 0 0 12 4a8 8 0 1 0 7.75 10h-2.1A6 6 0 1 1 12 6c1.66 0 3.14.67 4.22 1.78L13 11h7V4l-2.35 2.35z" fill="currentColor"/></svg>
+        </button>
+      </div>
+      <div class="panel-scroll">
+        <p class="panel-help">Admin groups only. Toggle to enable moderation.</p>
+        <div id="groupsNotice" class="notice hidden"></div>
+        <div id="groupsList" class="groups-list"></div>
+      </div>
+    </section>
+
+    <section class="panel rules-panel">
+      <div class="panel-header">
+        <h2>Spam Rules</h2>
+        <button id="saveRulesBtn" type="button" class="btn icon-btn primary" title="Save rules" aria-label="Save rules">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7l-4-4zm-5 14H8v-4h4v4zm4-6H8V7h8v4z" fill="currentColor"/></svg>
+        </button>
+      </div>
+      <div class="panel-scroll">
+        <form id="rulesForm" class="rules-form">
+          <label class="field">
+            <span>Keywords</span>
+            <textarea id="keywordsInput" rows="6" placeholder="crypto&#10;earn money&#10;click here"></textarea>
+          </label>
+          <label class="checkbox-field">
+            <input type="checkbox" id="blockAllLinksInput">
+            <span>Block all links</span>
+          </label>
+          <label class="field">
+            <span>Match mode</span>
+            <select id="matchModeInput">
+              <option value="any">Any link OR keyword</option>
+              <option value="all">Link AND keyword</option>
+            </select>
+          </label>
+          <label class="checkbox-field">
+            <input type="checkbox" id="dryRunInput">
+            <span>Dry run (log only)</span>
+          </label>
+          <label class="checkbox-field">
+            <input type="checkbox" id="wordBoundaryInput">
+            <span>Word boundaries</span>
+          </label>
+          <label class="field">
+            <span>Manual command</span>
+            <input type="text" id="spamCommandInput" placeholder="!spam">
+          </label>
+          <p class="panel-help command-help">
+            Reply to spam with <strong>!spam</strong> to remove, kick, and add keyword.
+          </p>
+        </form>
+        <div id="rulesSavedNotice" class="notice hidden">Rules saved.</div>
+      </div>
+    </section>
+
+    <section class="panel logs-panel">
+      <div class="panel-header">
+        <h2>Moderation Log</h2>
+        <div class="filters">
+          <select id="groupFilter">
+            <option value="">All groups</option>
+          </select>
+          <button id="refreshLogsBtn" type="button" class="btn icon-btn ghost" title="Refresh logs" aria-label="Refresh logs">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.65 6.35A7.95 7.95 0 0 0 12 4a8 8 0 1 0 7.75 10h-2.1A6 6 0 1 1 12 6c1.66 0 3.14.67 4.22 1.78L13 11h7V4l-2.35 2.35z" fill="currentColor"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="panel-scroll panel-scroll-table">
+        <div id="logsEmpty" class="empty-state hidden">No moderated messages yet.</div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Time</th>
+                <th>Group</th>
+                <th>Sender</th>
+                <th>Reason</th>
+                <th>Message</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="logsBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="/app.js"></script>
+</body>
+</html>

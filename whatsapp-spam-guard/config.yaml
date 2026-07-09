@@ -1,0 +1,24 @@
+monitoredGroups:
+  - name: My Public Group 1
+  - id: 120363428988552265@g.us
+    name: Badminton Gang 🏸🏸
+rules:
+  blockAllLinks: true
+  keywords:
+    - This is a group for sharing US stock knowledge
+  matchMode: any
+  dryRun: false
+  wordBoundaryKeywords: false
+commands:
+  enabled: true
+  spam: "!spam"
+  deleteCommandMessage: true
+  learnKeywords: true
+moderation:
+  deleteMessage: true
+  removeUser: true
+  logToFile: true
+  rateLimitSeconds: 60
+dashboard:
+  port: 3000
+  # host: 127.0.0.1   # default on Windows/Mac. WSL auto-uses 0.0.0.0

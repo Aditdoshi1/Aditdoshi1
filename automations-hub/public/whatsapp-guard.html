@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WhatsApp Spam Guard · Automation Hub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body class="app-shell guard-page">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-head">
+      <div class="brand">
+        <div class="brand-mark">⚡</div>
+        <div class="brand-text">
+          <strong>Automation Hub</strong>
+          <span>Control center</span>
+        </div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="/" class="sidebar-link">
+        <span class="sidebar-icon">📊</span>
+        <span class="sidebar-label">Dashboard</span>
+      </a>
+      <a href="/whatsapp-guard.html" class="sidebar-link active">
+        <span class="sidebar-icon">💬</span>
+        <span class="sidebar-label">WhatsApp Guard</span>
+      </a>
+      <a href="/placeholder.html" class="sidebar-link">
+        <span class="sidebar-icon">🔧</span>
+        <span class="sidebar-label">Automation 2</span>
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <button type="button" id="sidebarPin" class="sidebar-footer-btn" title="Pin sidebar" aria-label="Pin sidebar">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 3H5v5l4.5 4.5L9 17l3 3 3-3-1.5-4.5L16 8V3z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+      </button>
+      <button type="button" id="sidebarToggle" class="sidebar-footer-btn" title="Expand sidebar" aria-label="Toggle sidebar">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+  </aside>
+
+  <div class="app-main">
+    <header class="control-toolbar">
+      <div class="toolbar-left">
+        <span class="toolbar-icon">💬</span>
+        <div class="toolbar-title">
+          <h1>WhatsApp Guard</h1>
+          <p class="toolbar-subtitle">Group spam moderation</p>
+        </div>
+        <span id="guardStatusBadge" class="status-badge stopped">Stopped</span>
+      </div>
+
+      <div id="guardControls" class="toolbar-actions"></div>
+
+      <div class="toolbar-right">
+        <div id="botStatusCard" class="bot-status-card">
+          <span id="botStatusDot" class="bot-status-dot"></span>
+          <div class="bot-status-copy">
+            <div id="botStatusText">Bot offline</div>
+            <div id="botStatusMeta" class="bot-status-meta"></div>
+          </div>
+        </div>
+        <button id="guardRefreshBtn" type="button" class="btn icon-btn ghost" title="Refresh status" aria-label="Refresh status">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.65 6.35A7.95 7.95 0 0 0 12 4a8 8 0 1 0 7.75 10h-2.1A6 6 0 1 1 12 6c1.66 0 3.14.67 4.22 1.78L13 11h7V4l-2.35 2.35z" fill="currentColor"/></svg>
+        </button>
+        <a id="openDashboardLink" href="http://127.0.0.1:3000" target="_blank" class="btn icon-btn ghost" title="Pop out" aria-label="Pop out">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3h7v7h-2V6.41l-9.29 9.3-1.42-1.42 9.3-9.29H14V3zM5 5h6v2H7v10h10v-4h2v6H5V5z" fill="currentColor"/></svg>
+        </a>
+      </div>
+    </header>
+
+    <main class="embed-shell">
+      <div id="embedNotice" class="embed-notice hidden"></div>
+      <iframe
+        id="guardFrame"
+        title="WhatsApp Spam Guard Dashboard"
+        src="about:blank"
+        class="embed-frame"
+      ></iframe>
+    </main>
+  </div>
+
+  <div id="hubFeedback" class="hub-feedback"></div>
+
+  <script src="/js/icons.js"></script>
+  <script src="/js/sidebar.js"></script>
+  <script src="/js/hub.js"></script>
+  <script>
+    initHubPage({ mode: 'whatsapp-guard' });
+  </script>
+</body>
+</html>
