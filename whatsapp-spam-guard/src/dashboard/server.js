@@ -14,7 +14,7 @@ const {
   getPrimaryDashboardUrl,
   isWSL,
 } = require('../utils/dashboardUrl');
-const { runClientTask } = require('../utils/clientQueue');
+const { runClientTask, DEFAULT_TIMEOUT_MS } = require('../utils/clientQueue');
 const { getCachedGroups, setCachedGroups, clearGroupCache, CACHE_TTL_MS } = require('../utils/groupCache');
 
 function isMonitoredGroupId(groupId, monitoredGroups) {
@@ -101,16 +101,17 @@ async function fetchWhatsAppGroups(forceRefresh = false) {
     const sorted = groups.sort((a, b) => a.name.localeCompare(b.name));
     setCachedGroups(sorted);
     return sorted;
-  }, 'list-groups');
+  }, 'list-groups', Math.min(DEFAULT_TIMEOUT_MS, 20000));
 }
 
 async function listWhatsAppGroups(forceRefresh = false) {
+  const cached = getCachedGroups();
+
   try {
     return await fetchWhatsAppGroups(forceRefresh);
   } catch (error) {
     logError('Failed to list WhatsApp groups', error);
 
-    const cached = getCachedGroups();
     if (cached?.groups?.length) {
       return cached.groups;
     }
@@ -130,6 +131,8 @@ function createDashboardApp() {
     res.json({
       ready: botState.ready,
       authenticated: botState.authenticated,
+      reconnecting: Boolean(botState.reconnecting),
+      lastReadyAt: botState.lastReadyAt,
       hasQr: Boolean(botState.qrCode),
       qrUpdatedAt: botState.qrUpdatedAt,
       dryRun: config.rules?.dryRun ?? true,
@@ -190,18 +193,35 @@ function createDashboardApp() {
   app.get('/api/groups', async (req, res) => {
     try {
       const forceRefresh = req.query.refresh === '1';
-      const groups = await listWhatsAppGroups(forceRefresh);
       const cached = getCachedGroups();
+      let groups;
+      let stale = false;
+
+      try {
+        groups = await listWhatsAppGroups(forceRefresh);
+      } catch (error) {
+        if (cached?.groups?.length) {
+          groups = cached.groups;
+          stale = true;
+        } else {
+          throw error;
+        }
+      }
 
       res.json({
         groups,
         ready: botState.ready,
+        reconnecting: Boolean(botState.reconnecting),
         cachedAt: cached?.fetchedAt || null,
         cacheTtlMs: CACHE_TTL_MS,
+        stale,
       });
     } catch (error) {
       logError('Failed to list WhatsApp groups', error);
-      res.status(500).json({ error: 'Failed to list WhatsApp groups. Try Refresh in a few seconds.' });
+      res.status(503).json({
+        error: 'WhatsApp is busy or reconnecting. Try Refresh in a few seconds.',
+        reconnecting: Boolean(botState.reconnecting),
+      });
     }
   });
 
@@ -342,13 +362,19 @@ function createDashboardApp() {
   return app;
 }
 
+let dashboardServer = null;
+
 function startDashboard(config) {
+  if (dashboardServer) {
+    return dashboardServer;
+  }
+
   const app = createDashboardApp();
   const port = getDashboardPort(config);
   const host = getDashboardHost(config);
   const urls = getDashboardUrls(config);
 
-  app.listen(port, host, () => {
+  dashboardServer = app.listen(port, host, () => {
     logInfo(`Dashboard available at ${getPrimaryDashboardUrl(config)}`);
     if (host === '0.0.0.0') {
       logInfo(`Listening on all interfaces (port ${port})`);
@@ -358,7 +384,10 @@ function startDashboard(config) {
     } else {
       logInfo('Open in browser, or run: npm run open-dashboard');
     }
-  }).on('error', (error) => {
+  });
+
+  dashboardServer.on('error', (error) => {
+    dashboardServer = null;
     if (error.code === 'EADDRINUSE') {
       logError(`Port ${port} is already in use. Another bot instance may already be running — open http://127.0.0.1:${port} or run npm run stop:win (Windows) / npm run stop (Mac/Linux), then start again. Or set DASHBOARD_PORT=3001`, error);
     } else {
@@ -366,6 +395,8 @@ function startDashboard(config) {
     }
     process.exit(1);
   });
+
+  return dashboardServer;
 }
 
 module.exports = {

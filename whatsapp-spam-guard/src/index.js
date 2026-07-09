@@ -9,9 +9,12 @@ const { isGroupAdmin, isBotGroupAdmin, normalizeId } = require('./utils/isAdmin'
 const Moderator = require('./moderator');
 const { startDashboard } = require('./dashboard/server');
 const { handleManualSpamCommand } = require('./manualModeration');
+const { runClientTask } = require('./utils/clientQueue');
 
 let reconnectTimer = null;
 let activeClient = null;
+let dashboardStarted = false;
+let clientStarting = false;
 
 function isMonitoredGroup(chat, monitoredGroups) {
   if (!chat.isGroup) {
@@ -60,33 +63,116 @@ function createClient() {
         '--no-first-run',
         '--no-zygote',
         '--disable-accelerated-2d-canvas',
+        '--disable-extensions',
       ],
     },
   });
 }
 
-function scheduleReconnect(startFn) {
+function scheduleReconnect() {
   if (reconnectTimer) {
     return;
   }
 
+  setBotState({ ready: false, reconnecting: true });
+
   reconnectTimer = setTimeout(async () => {
     reconnectTimer = null;
-    logInfo('Attempting to reconnect...');
+    logInfo('Attempting to reconnect WhatsApp...');
 
-    setBotState({ ready: false, authenticated: false });
+    try {
+      await connectWhatsApp();
+    } catch (error) {
+      logError('Reconnect failed, retrying in 10 seconds', error);
+      scheduleReconnect();
+    }
+  }, 5000);
+}
 
-    if (activeClient) {
-      try {
-        await activeClient.destroy();
-      } catch {
-        // Ignore cleanup errors during reconnect.
-      }
-      activeClient = null;
+async function destroyActiveClient() {
+  if (!activeClient) {
+    return;
+  }
+
+  const client = activeClient;
+  activeClient = null;
+
+  try {
+    client.removeAllListeners();
+    await client.destroy();
+  } catch {
+    // Ignore cleanup errors during reconnect.
+  }
+}
+
+function attachClientEvents(client, config) {
+  client.on('qr', (qr) => {
+    setBotState({
+      qrCode: qr,
+      qrUpdatedAt: new Date().toISOString(),
+      ready: false,
+      authenticated: false,
+      reconnecting: false,
+    });
+    logInfo('Scan this QR code with WhatsApp (Linked Devices):');
+    logInfo('Or open the dashboard connect page for a scannable image.');
+    qrcode.generate(qr, { small: true });
+  });
+
+  client.on('authenticated', () => {
+    setBotState({ authenticated: true, qrCode: null, reconnecting: false });
+    logInfo('Authenticated successfully');
+  });
+
+  client.on('auth_failure', (message) => {
+    setBotState({ authenticated: false, ready: false, qrCode: null, reconnecting: false });
+    logError('Authentication failed', message);
+  });
+
+  client.on('ready', () => {
+    setBotState({
+      ready: true,
+      qrCode: null,
+      reconnecting: false,
+      lastReadyAt: new Date().toISOString(),
+    });
+    logInfo('WhatsApp Spam Guard is ready', {
+      dryRun: config.rules.dryRun,
+      monitoredGroups: config.monitoredGroups.length,
+      keywords: config.rules.keywords.length,
+      dashboardPort: process.env.DASHBOARD_PORT || config.dashboard?.port || 3000,
+    });
+  });
+
+  client.on('message', async (message) => {
+    if (message.fromMe) {
+      return;
     }
 
-    startFn();
-  }, 5000);
+    try {
+      await runClientTask(() => handleMessage(client, message), 'handle-message', 30000);
+    } catch (error) {
+      logError('Unhandled message processing error', error);
+    }
+  });
+
+  client.on('message_create', async (message) => {
+    if (!message.fromMe) {
+      return;
+    }
+
+    try {
+      await runClientTask(() => handleMessage(client, message), 'handle-own-message', 30000);
+    } catch (error) {
+      logError('Unhandled own-message processing error', error);
+    }
+  });
+
+  client.on('disconnected', (reason) => {
+    setBotState({ ready: false, authenticated: false, qrCode: null, reconnecting: true });
+    logError('WhatsApp disconnected — moderation paused until reconnect', reason);
+    scheduleReconnect();
+  });
 }
 
 async function handleMessage(client, message) {
@@ -146,6 +232,38 @@ async function handleMessage(client, message) {
   });
 }
 
+async function connectWhatsApp() {
+  if (clientStarting) {
+    logInfo('WhatsApp client is already starting');
+    return;
+  }
+
+  clientStarting = true;
+  setBotState({ reconnecting: true });
+
+  try {
+    const config = loadConfig();
+    const moderator = botState.moderator || new Moderator(config);
+
+    setBotState({
+      config,
+      moderator,
+      ready: false,
+    });
+
+    await destroyActiveClient();
+
+    const client = createClient();
+    activeClient = client;
+    setBotState({ client });
+    attachClientEvents(client, config);
+
+    await client.initialize();
+  } finally {
+    clientStarting = false;
+  }
+}
+
 async function start() {
   const config = loadConfig();
   const moderator = new Moderator(config);
@@ -157,82 +275,29 @@ async function start() {
     authenticated: false,
     qrCode: null,
     qrUpdatedAt: null,
+    reconnecting: false,
+    lastReadyAt: null,
   });
 
-  startDashboard(config);
+  if (!dashboardStarted) {
+    startDashboard(config);
+    dashboardStarted = true;
+  }
 
-  const client = createClient();
-  activeClient = client;
-  setBotState({ client });
-
-  client.on('qr', (qr) => {
-    setBotState({
-      qrCode: qr,
-      qrUpdatedAt: new Date().toISOString(),
-      ready: false,
-      authenticated: false,
-    });
-    logInfo('Scan this QR code with WhatsApp (Linked Devices):');
-    logInfo('Or open the dashboard connect page for a scannable image.');
-    qrcode.generate(qr, { small: true });
-  });
-
-  client.on('authenticated', () => {
-    setBotState({ authenticated: true, qrCode: null });
-    logInfo('Authenticated successfully');
-  });
-
-  client.on('auth_failure', (message) => {
-    setBotState({ authenticated: false, ready: false, qrCode: null });
-    logError('Authentication failed', message);
-  });
-
-  client.on('ready', () => {
-    setBotState({ ready: true, qrCode: null });
-    logInfo('WhatsApp Spam Guard is ready', {
-      dryRun: config.rules.dryRun,
-      monitoredGroups: config.monitoredGroups.length,
-      keywords: config.rules.keywords.length,
-      dashboardPort: process.env.DASHBOARD_PORT || config.dashboard?.port || 3000,
-    });
-  });
-
-  client.on('message', async (message) => {
-    if (message.fromMe) {
-      return;
-    }
-
-    try {
-      await handleMessage(client, message);
-    } catch (error) {
-      logError('Unhandled message processing error', error);
-    }
-  });
-
-  client.on('message_create', async (message) => {
-    if (!message.fromMe) {
-      return;
-    }
-
-    try {
-      await handleMessage(client, message);
-    } catch (error) {
-      logError('Unhandled own-message processing error', error);
-    }
-  });
-
-  client.on('disconnected', (reason) => {
-    setBotState({ ready: false, authenticated: false, qrCode: null });
-    logError('Client disconnected', reason);
-    scheduleReconnect(start);
-  });
-
-  await client.initialize();
+  await connectWhatsApp();
 }
+
+process.on('unhandledRejection', (reason) => {
+  logError('Unhandled promise rejection (bot keeps running)', reason);
+});
+
+process.on('uncaughtException', (error) => {
+  logError('Uncaught exception', error);
+});
 
 start().catch((error) => {
   logError('Failed to start bot', error);
-  process.exit(1);
+  scheduleReconnect();
 });
 
 module.exports = {

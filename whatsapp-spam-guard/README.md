@@ -221,7 +221,7 @@ whatsapp-spam-guard/
 
 | Issue | Fix |
 |-------|-----|
-| Dashboard won't open / `ERR_CONNECTION_REFUSED` | Bot must be running. Run `npm run diagnose`. Then `npm run open-dashboard` |
+| Dashboard stops / bot pauses briefly | WhatsApp reconnecting. Dashboard should stay up; wait ~30s. If it keeps happening, restart once with `npm run stop:win` then `npm run start:win` |
 | Background start but no browser | Run `npm run start:win` (Windows) or `npm run start:bg` (Mac/Linux) — they auto-open the dashboard |
 | WSL: localhost fails in Windows browser | Bot auto-binds `0.0.0.0` in WSL. Use the URL printed in logs, or run `npm run diagnose` |
 | Port 3000 in use | `set DASHBOARD_PORT=3001` (Windows) or `DASHBOARD_PORT=3001 npm start` |

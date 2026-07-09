@@ -21,14 +21,24 @@ const spamCommandInput = document.getElementById('spamCommandInput');
 const rulesSavedNotice = document.getElementById('rulesSavedNotice');
 
 async function fetchJson(url, options) {
-  const response = await fetch(url, options);
-  const data = await response.json();
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10000);
 
-  if (!response.ok) {
-    throw new Error(data.error || 'Request failed');
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+    });
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Request failed');
+    }
+
+    return data;
+  } finally {
+    clearTimeout(timeout);
   }
-
-  return data;
 }
 
 function formatTime(timestamp) {
@@ -36,9 +46,14 @@ function formatTime(timestamp) {
 }
 
 function renderStatus(status) {
-  statusDot.classList.remove('ready', 'error');
+  statusDot.classList.remove('ready', 'error', 'reconnecting');
 
-  if (status.ready) {
+  if (status.reconnecting) {
+    statusDot.classList.add('reconnecting');
+    statusText.textContent = 'Reconnecting to WhatsApp...';
+    connectPanel.classList.add('hidden');
+    layout.classList.add('connected');
+  } else if (status.ready) {
     statusDot.classList.add('ready');
     statusText.textContent = 'Bot connected';
     connectPanel.classList.add('hidden');
@@ -319,8 +334,26 @@ groupFilter.addEventListener('change', loadLogs);
 
 Promise.all([refreshAll(), loadRules(), loadGroups()]).catch((error) => {
   statusDot.classList.add('error');
-  statusText.textContent = 'Dashboard error';
+  statusText.textContent = 'Dashboard offline';
   statusMeta.textContent = error.message;
 });
 
-setInterval(refreshAll, 5000);
+let pollDelayMs = 5000;
+let pollTimer = null;
+
+async function pollDashboard() {
+  try {
+    await refreshAll();
+    pollDelayMs = 5000;
+  } catch (error) {
+    statusDot.classList.remove('ready', 'reconnecting');
+    statusDot.classList.add('error');
+    statusText.textContent = 'Dashboard offline';
+    statusMeta.textContent = `${error.message} · retrying...`;
+    pollDelayMs = Math.min(Math.round(pollDelayMs * 1.5), 30000);
+  }
+
+  pollTimer = setTimeout(pollDashboard, pollDelayMs);
+}
+
+pollDashboard();
