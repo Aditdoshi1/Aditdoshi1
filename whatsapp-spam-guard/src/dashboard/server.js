@@ -4,7 +4,7 @@ const QRCode = require('qrcode');
 
 const { botState, emitConfigChange } = require('../botState');
 const { loadConfig, updateMonitoredGroups, updateSettings } = require('../utils/config');
-const { readModerationLogs, getModeratedGroupNames } = require('../utils/logReader');
+const { readModerationLogs, getLogFilterGroupNames } = require('../utils/logReader');
 const { normalizeId, isBotGroupAdmin } = require('../utils/isAdmin');
 const {
   isGroupMonitored,
@@ -178,10 +178,12 @@ function createDashboardApp() {
     const limit = Number(req.query.limit || 100);
     const groupId = req.query.groupId || undefined;
     const groupName = req.query.groupName || undefined;
+    const config = botState.config || loadConfig();
+    const cached = getCachedGroups();
 
     res.json({
       entries: readModerationLogs({ limit, groupId, groupName }),
-      groupNames: getModeratedGroupNames(),
+      groupNames: getLogFilterGroupNames(cached?.groups || [], config.monitoredGroups),
     });
   });
 

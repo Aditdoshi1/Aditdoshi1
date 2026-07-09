@@ -323,7 +323,11 @@ async function loadGroups(forceRefresh = false) {
 
 async function loadAllLogEntries() {
   const data = await fetchJson('/api/logs?limit=100');
-  renderGroupFilterOptions(data.groupNames || []);
+  const fallbackNames = cachedAdminGroups
+    .filter((group) => group.monitored && group.name)
+    .map((group) => group.name);
+  const groupNames = data.groupNames?.length ? data.groupNames : fallbackNames;
+  renderGroupFilterOptions(groupNames);
   return data.entries;
 }
 
@@ -335,7 +339,11 @@ async function loadLogs() {
   }
 
   const data = await fetchJson(`/api/logs?${params.toString()}`);
-  renderGroupFilterOptions(data.groupNames || []);
+  const fallbackNames = cachedAdminGroups
+    .filter((group) => group.monitored && group.name)
+    .map((group) => group.name);
+  const groupNames = data.groupNames?.length ? data.groupNames : fallbackNames;
+  renderGroupFilterOptions(groupNames);
   renderLogs(data.entries);
   return data.entries;
 }

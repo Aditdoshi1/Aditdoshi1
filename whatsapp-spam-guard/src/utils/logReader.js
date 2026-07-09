@@ -1,5 +1,6 @@
 const fs = require('fs');
 const { LOG_FILE } = require('./logger');
+const { isGroupMonitored } = require('./monitoredGroups');
 
 function readModerationLogs({ limit = 100, groupId, groupName } = {}) {
   if (!fs.existsSync(LOG_FILE)) {
@@ -46,7 +47,38 @@ function getModeratedGroupNames() {
   return [...names].sort((a, b) => a.localeCompare(b));
 }
 
+function getLogFilterGroupNames(visibleGroups, monitoredGroupsConfig) {
+  const names = new Set(getModeratedGroupNames());
+  const configured = monitoredGroupsConfig || [];
+
+  for (const group of visibleGroups || []) {
+    if (!group.name) {
+      continue;
+    }
+
+    const isMonitored = group.monitored
+      || configured.some((entry) => {
+        if (entry.id && group.id && entry.id === group.id) {
+          return true;
+        }
+
+        if (entry.name && entry.name.trim().toLowerCase() === group.name.trim().toLowerCase()) {
+          return true;
+        }
+
+        return false;
+      });
+
+    if (isMonitored) {
+      names.add(group.name);
+    }
+  }
+
+  return [...names].sort((a, b) => a.localeCompare(b));
+}
+
 module.exports = {
   readModerationLogs,
   getModeratedGroupNames,
+  getLogFilterGroupNames,
 };
