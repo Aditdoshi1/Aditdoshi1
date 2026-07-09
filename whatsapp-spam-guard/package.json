@@ -1,0 +1,36 @@
+{
+  "name": "whatsapp-spam-guard",
+  "version": "1.0.0",
+  "description": "WhatsApp group spam auto-moderation bot",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "start:bg": "bash scripts/start-background.sh",
+    "start:win": "scripts\\start-background.bat",
+    "open-dashboard": "node scripts/open-dashboard.js",
+    "diagnose": "node scripts/diagnose.js",
+    "stop": "pkill -f 'node src/index.js' || true",
+    "stop:win": "scripts\\stop-windows.bat",
+    "reset-auth": "node scripts/reset-auth.js",
+    "test:classifier": "node src/test/classifier.test.js",
+    "test:moderator": "node src/test/moderator.test.js",
+    "test:config": "node src/test/config.test.js",
+    "test:manual": "node src/test/manual.test.js",
+    "test:admin": "node src/test/isAdmin.test.js",
+    "test:learn": "node src/test/learnKeywords.test.js",
+    "test:delete": "node src/test/deleteMessage.test.js",
+    "test:monitored": "node src/test/monitoredGroups.test.js",
+    "test": "npm run test:classifier && npm run test:moderator && npm run test:config && npm run test:manual && npm run test:admin && npm run test:learn && npm run test:delete && npm run test:monitored"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "express": "^5.1.0",
+    "qrcode": "^1.5.4",
+    "qrcode-terminal": "^0.12.0",
+    "whatsapp-web.js": "github:pedroslopez/whatsapp-web.js#main",
+    "yaml": "^2.8.2"
+  }
+}

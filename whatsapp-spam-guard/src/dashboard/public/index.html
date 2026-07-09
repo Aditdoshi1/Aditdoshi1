@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WhatsApp Spam Guard</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header class="header">
+    <div>
+      <h1>WhatsApp Spam Guard</h1>
+      <p class="subtitle">Monitor deleted spam and choose which groups the bot protects.</p>
+    </div>
+    <div class="status-card" id="statusCard">
+      <span class="status-dot" id="statusDot"></span>
+      <div>
+        <div id="statusText">Connecting...</div>
+        <div class="status-meta" id="statusMeta"></div>
+      </div>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="panel connect-panel" id="connectPanel">
+      <div class="panel-header">
+        <h2>Connect WhatsApp</h2>
+      </div>
+      <p class="panel-help">
+        Open WhatsApp on your phone → Linked Devices → Link a Device, then scan this code.
+      </p>
+      <div id="connectNotice" class="notice hidden"></div>
+      <div class="qr-wrap">
+        <img id="qrImage" alt="WhatsApp QR code" class="qr-image hidden">
+        <div id="qrPlaceholder" class="empty-state">Waiting for QR code...</div>
+      </div>
+      <p class="qr-meta" id="qrMeta"></p>
+    </section>
+
+    <section class="panel dashboard-panel" id="dashboardPanel">
+      <div class="panel-header">
+        <h2>Monitored Groups</h2>
+        <button id="refreshGroupsBtn" class="btn secondary">Refresh</button>
+      </div>
+      <p class="panel-help">
+        Only groups where your account is an admin are shown. Toggle groups on to enable moderation.
+      </p>
+      <div id="groupsNotice" class="notice hidden"></div>
+      <div id="groupsList" class="groups-list"></div>
+    </section>
+
+    <section class="panel rules-panel">
+      <div class="panel-header">
+        <h2>Spam Rules</h2>
+        <button id="saveRulesBtn" class="btn primary">Save Rules</button>
+      </div>
+      <p class="panel-help">
+        Control automatic spam detection. One keyword per line. Manual removal uses the WhatsApp command below.
+      </p>
+      <form id="rulesForm" class="rules-form">
+        <label class="field">
+          <span>Keywords</span>
+          <textarea id="keywordsInput" rows="8" placeholder="crypto&#10;earn money&#10;click here"></textarea>
+        </label>
+        <label class="checkbox-field">
+          <input type="checkbox" id="blockAllLinksInput">
+          <span>Block all links</span>
+        </label>
+        <label class="field">
+          <span>Match mode</span>
+          <select id="matchModeInput">
+            <option value="any">Any link OR keyword (strictest)</option>
+            <option value="all">Both link AND keyword required</option>
+          </select>
+        </label>
+        <label class="checkbox-field">
+          <input type="checkbox" id="dryRunInput">
+          <span>Dry run (log only, no delete/kick)</span>
+        </label>
+        <label class="checkbox-field">
+          <input type="checkbox" id="wordBoundaryInput">
+          <span>Word boundaries for keywords</span>
+        </label>
+        <label class="field">
+          <span>WhatsApp manual spam command</span>
+          <input type="text" id="spamCommandInput" placeholder="!spam">
+        </label>
+        <p class="panel-help command-help">
+          Reply to a spam message with <strong>!spam</strong>. The bot removes that message, kicks the sender, and adds the text to your spam keywords for future auto-detection.
+        </p>
+      </form>
+      <div id="rulesSavedNotice" class="notice hidden">Rules saved.</div>
+    </section>
+
+    <section class="panel logs-panel">
+      <div class="panel-header">
+        <h2>Moderation Log</h2>
+        <div class="filters">
+          <select id="groupFilter">
+            <option value="">All groups</option>
+          </select>
+          <button id="refreshLogsBtn" class="btn secondary">Refresh</button>
+        </div>
+      </div>
+      <p class="panel-help">
+        Filter moderation history by your monitored groups. Groups with past spam actions also stay listed here.
+      </p>
+      <div id="logsEmpty" class="empty-state hidden">No moderated messages yet.</div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Group</th>
+              <th>Sender</th>
+              <th>Reason</th>
+              <th>Message</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="logsBody"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script src="/app.js"></script>
+</body>
+</html>
