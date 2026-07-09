@@ -6,6 +6,8 @@
   "scripts": {
     "start": "node src/index.js",
     "start:bg": "bash scripts/start-background.sh",
+    "start:win": "scripts\\start-background.bat",
+    "diagnose": "node scripts/diagnose.js",
     "stop": "pkill -f 'node src/index.js' || true",
     "reset-auth": "node scripts/reset-auth.js",
     "test:classifier": "node src/test/classifier.test.js",

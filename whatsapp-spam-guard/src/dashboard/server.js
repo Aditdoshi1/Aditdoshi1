@@ -338,9 +338,18 @@ function createDashboardApp() {
 function startDashboard(config) {
   const app = createDashboardApp();
   const port = Number(process.env.DASHBOARD_PORT || config.dashboard?.port || 3000);
+  const host = process.env.DASHBOARD_HOST || '127.0.0.1';
 
-  app.listen(port, () => {
-    logInfo(`Dashboard available at http://localhost:${port}`);
+  app.listen(port, host, () => {
+    logInfo(`Dashboard available at http://${host}:${port}`);
+    logInfo(`Also try http://127.0.0.1:${port} if localhost fails`);
+  }).on('error', (error) => {
+    if (error.code === 'EADDRINUSE') {
+      logError(`Port ${port} is already in use. Stop the other app or set DASHBOARD_PORT=3001`, error);
+    } else {
+      logError('Dashboard failed to start', error);
+    }
+    process.exit(1);
   });
 }
 

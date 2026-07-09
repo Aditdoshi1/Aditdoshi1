@@ -2,14 +2,12 @@ monitoredGroups:
   - name: My Public Group 1
   - id: 120363428988552265@g.us
     name: Badminton Gang 🏸🏸
-  - id: 120363428981799529@g.us
-    name: Test
 rules:
   blockAllLinks: true
   keywords:
     - This is a group for sharing US stock knowledge
   matchMode: any
-  dryRun: true
+  dryRun: false
   wordBoundaryKeywords: false
 commands:
   enabled: true
