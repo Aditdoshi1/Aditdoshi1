@@ -360,7 +360,7 @@ function startDashboard(config) {
     }
   }).on('error', (error) => {
     if (error.code === 'EADDRINUSE') {
-      logError(`Port ${port} is already in use. Stop the other app or set DASHBOARD_PORT=3001`, error);
+      logError(`Port ${port} is already in use. Another bot instance may already be running — open http://127.0.0.1:${port} or run npm run stop:win (Windows) / npm run stop (Mac/Linux), then start again. Or set DASHBOARD_PORT=3001`, error);
     } else {
       logError('Dashboard failed to start', error);
     }

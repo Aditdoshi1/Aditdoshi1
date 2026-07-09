@@ -10,6 +10,7 @@
     "open-dashboard": "node scripts/open-dashboard.js",
     "diagnose": "node scripts/diagnose.js",
     "stop": "pkill -f 'node src/index.js' || true",
+    "stop:win": "scripts\\stop-windows.bat",
     "reset-auth": "node scripts/reset-auth.js",
     "test:classifier": "node src/test/classifier.test.js",
     "test:moderator": "node src/test/moderator.test.js",
