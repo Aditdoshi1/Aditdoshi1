@@ -1,4 +1,6 @@
 const AUTOMATION_ID = 'whatsapp-spam-guard';
+let lastEmbedUrl = null;
+let lastControlSnapshot = null;
 
 async function fetchJson(url, options) {
   const response = await fetch(url, options);
@@ -15,43 +17,61 @@ function statusClass(status) {
   return status || 'stopped';
 }
 
-function renderControls(container, automation) {
+function controlSnapshot(automation) {
+  return [
+    automation.status,
+    automation.canStart,
+    automation.canPause,
+    automation.canResume,
+    automation.canStop,
+    automation.type,
+  ].join('|');
+}
+
+function renderControls(container, automation, options = {}) {
+  const { showOpenPage = false } = options;
   container.innerHTML = '';
 
-  const startBtn = document.createElement('button');
-  startBtn.className = 'btn primary';
-  startBtn.innerHTML = '<span class="btn-icon">▶</span> Start';
-  startBtn.disabled = !automation.canStart;
-  startBtn.onclick = () => controlAutomation(automation.id, 'start');
-
-  const pauseBtn = document.createElement('button');
-  pauseBtn.className = 'btn warning';
-  pauseBtn.innerHTML = '<span class="btn-icon">⏸</span> Pause';
-  pauseBtn.disabled = !automation.canPause;
-  pauseBtn.onclick = () => controlAutomation(automation.id, 'pause');
-
-  const resumeBtn = document.createElement('button');
-  resumeBtn.className = 'btn primary';
-  resumeBtn.innerHTML = '<span class="btn-icon">⏵</span> Resume';
-  resumeBtn.disabled = !automation.canResume;
-  resumeBtn.onclick = () => controlAutomation(automation.id, 'resume');
-
-  const stopBtn = document.createElement('button');
-  stopBtn.className = 'btn danger';
-  stopBtn.innerHTML = '<span class="btn-icon">■</span> Stop';
-  stopBtn.disabled = !automation.canStop;
-  stopBtn.onclick = () => controlAutomation(automation.id, 'stop');
-
-  const openBtn = document.createElement('a');
-  openBtn.className = 'btn secondary';
-  openBtn.textContent = 'Open page';
-  openBtn.href = automation.detailPath || '/';
   if (automation.type === 'placeholder') {
-    openBtn.classList.add('disabled');
-    openBtn.removeAttribute('href');
+    const label = document.createElement('span');
+    label.className = 'control-hint';
+    label.textContent = 'Not available yet';
+    container.appendChild(label);
+    return;
   }
 
-  container.append(startBtn, pauseBtn, resumeBtn, stopBtn, openBtn);
+  const powerBtn = document.createElement('button');
+  if (automation.canStart) {
+    powerBtn.className = 'btn primary';
+    powerBtn.innerHTML = '<span class="btn-icon">▶</span> Start';
+    powerBtn.onclick = () => controlAutomation(automation.id, 'start');
+  } else {
+    powerBtn.className = 'btn danger';
+    powerBtn.innerHTML = '<span class="btn-icon">■</span> Stop';
+    powerBtn.onclick = () => controlAutomation(automation.id, 'stop');
+  }
+  container.appendChild(powerBtn);
+
+  if (automation.canPause || automation.canResume) {
+    const pauseBtn = document.createElement('button');
+    pauseBtn.className = 'btn warning';
+    if (automation.canResume) {
+      pauseBtn.innerHTML = '<span class="btn-icon">⏵</span> Resume';
+      pauseBtn.onclick = () => controlAutomation(automation.id, 'resume');
+    } else {
+      pauseBtn.innerHTML = '<span class="btn-icon">⏸</span> Pause';
+      pauseBtn.onclick = () => controlAutomation(automation.id, 'pause');
+    }
+    container.appendChild(pauseBtn);
+  }
+
+  if (showOpenPage && automation.detailPath) {
+    const openBtn = document.createElement('a');
+    openBtn.className = 'btn secondary';
+    openBtn.textContent = 'Open';
+    openBtn.href = automation.detailPath;
+    container.appendChild(openBtn);
+  }
 }
 
 function renderAutomationCard(automation) {
@@ -71,7 +91,7 @@ function renderAutomationCard(automation) {
 
   const actions = document.createElement('div');
   actions.className = 'automation-actions';
-  renderControls(actions, automation);
+  renderControls(actions, automation, { showOpenPage: true });
   card.appendChild(actions);
 
   return card;
@@ -133,6 +153,17 @@ function renderDashboard(automations) {
   }
 }
 
+function setEmbedFrame(frame, url) {
+  const nextUrl = url || 'about:blank';
+
+  if (nextUrl === lastEmbedUrl) {
+    return;
+  }
+
+  frame.src = nextUrl;
+  lastEmbedUrl = nextUrl;
+}
+
 function renderWhatsAppGuardPage(automations) {
   const automation = automations.find((entry) => entry.id === AUTOMATION_ID);
   if (!automation) {
@@ -144,7 +175,11 @@ function renderWhatsAppGuardPage(automations) {
   badge.textContent = automation.statusLabel;
 
   const controls = document.getElementById('guardControls');
-  renderControls(controls, automation);
+  const snapshot = controlSnapshot(automation);
+  if (snapshot !== lastControlSnapshot) {
+    renderControls(controls, automation, { showOpenPage: false });
+    lastControlSnapshot = snapshot;
+  }
 
   const frame = document.getElementById('guardFrame');
   const notice = document.getElementById('embedNotice');
@@ -155,25 +190,29 @@ function renderWhatsAppGuardPage(automations) {
   }
 
   if (automation.status === 'running' && automation.dashboardUrl) {
-    frame.src = automation.dashboardUrl;
+    setEmbedFrame(frame, automation.dashboardUrl);
     notice.classList.add('hidden');
   } else if (automation.status === 'starting') {
-    frame.src = 'about:blank';
+    setEmbedFrame(frame, 'about:blank');
     notice.textContent = 'Bot is starting. The dashboard will appear in a few seconds...';
     notice.classList.remove('hidden');
   } else if (automation.status === 'paused') {
-    frame.src = automation.dashboardUrl || 'about:blank';
-    notice.textContent = 'Automation is paused. Moderation is disabled, but the dashboard stays available.';
+    if (automation.dashboardUrl && lastEmbedUrl !== automation.dashboardUrl) {
+      setEmbedFrame(frame, automation.dashboardUrl);
+    }
+    notice.textContent = 'Paused — moderation is off, dashboard stays open.';
     notice.classList.remove('hidden');
   } else {
-    frame.src = 'about:blank';
-    notice.textContent = 'Start the automation to load the WhatsApp Spam Guard dashboard here.';
+    setEmbedFrame(frame, 'about:blank');
+    lastEmbedUrl = null;
+    notice.textContent = 'Press Start to load the WhatsApp Spam Guard dashboard.';
     notice.classList.remove('hidden');
   }
 }
 
 function initHubPage({ mode }) {
   const refreshBtn = document.getElementById('refreshBtn');
+  const guardRefreshBtn = document.getElementById('guardRefreshBtn');
 
   async function tick() {
     try {
@@ -195,8 +234,11 @@ function initHubPage({ mode }) {
     refreshBtn.addEventListener('click', tick);
   }
 
+  if (guardRefreshBtn) {
+    guardRefreshBtn.addEventListener('click', tick);
+  }
+
   tick();
-  setInterval(tick, 4000);
 }
 
 window.initHubPage = initHubPage;
