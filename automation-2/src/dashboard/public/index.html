@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Automation 2 · Dev</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header class="header">
+    <div>
+      <h1>Automation 2</h1>
+      <p class="subtitle">Development dashboard (not wired into the hub yet)</p>
+    </div>
+    <div class="status-card">
+      <span class="status-dot ready"></span>
+      <div>
+        <div id="statusText">Loading…</div>
+        <div class="status-meta" id="statusMeta"></div>
+      </div>
+    </div>
+  </header>
+
+  <main class="content">
+    <section class="panel">
+      <h2>Development mode</h2>
+      <p>
+        This runs independently on port <strong>3001</strong> while WhatsApp Guard keeps using
+        port <strong>3000</strong>. The hub placeholder page stays unchanged until this automation is ready to merge.
+      </p>
+      <ul>
+        <li>Add logic under <code>automation-2/src/</code></li>
+        <li>Test here at <code>http://127.0.0.1:3001</code></li>
+        <li>When ready, register in <code>automations-hub/src/automations.js</code></li>
+      </ul>
+    </section>
+  </main>
+
+  <script>
+    fetch('/api/status')
+      .then((response) => response.json())
+      .then((data) => {
+        document.getElementById('statusText').textContent = data.message || 'Running';
+        document.getElementById('statusMeta').textContent = `Uptime ${data.uptimeSec}s · phase: ${data.phase}`;
+      })
+      .catch((error) => {
+        document.getElementById('statusText').textContent = 'Offline';
+        document.getElementById('statusMeta').textContent = error.message;
+      });
+  </script>
+</body>
+</html>

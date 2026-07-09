@@ -1,0 +1,6 @@
+# Copy to config.yaml when you start building Automation 2.
+# This file is intentionally separate from whatsapp-spam-guard/config.yaml
+
+name: Automation 2
+dashboard:
+  port: 3001
