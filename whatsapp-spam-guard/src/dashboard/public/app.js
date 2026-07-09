@@ -20,6 +20,9 @@ const wordBoundaryInput = document.getElementById('wordBoundaryInput');
 const spamCommandInput = document.getElementById('spamCommandInput');
 const rulesSavedNotice = document.getElementById('rulesSavedNotice');
 
+let cachedAdminGroups = [];
+const knownLogGroupNames = new Set();
+
 async function fetchJson(url, options) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 10000);
@@ -259,32 +262,33 @@ function renderLogs(entries) {
   }
 }
 
-function updateGroupFilter(groups, entries) {
-  const previous = groupFilter.value;
-  const names = new Set();
-
+function rememberGroupNames(groups, entries) {
   for (const group of groups) {
     if (group.name) {
-      names.add(group.name);
+      knownLogGroupNames.add(group.name);
     }
   }
 
   for (const entry of entries) {
     if (entry.groupName) {
-      names.add(entry.groupName);
+      knownLogGroupNames.add(entry.groupName);
     }
   }
+}
+
+function renderGroupFilterOptions() {
+  const previous = groupFilter.value;
 
   groupFilter.innerHTML = '<option value="">All groups</option>';
 
-  [...names].sort().forEach((name) => {
+  [...knownLogGroupNames].sort().forEach((name) => {
     const option = document.createElement('option');
     option.value = name;
     option.textContent = name;
     groupFilter.appendChild(option);
   });
 
-  if ([...names].includes(previous)) {
+  if (previous && knownLogGroupNames.has(previous)) {
     groupFilter.value = previous;
   }
 }
@@ -309,13 +313,23 @@ async function loadGroups(forceRefresh = false) {
   try {
     const url = forceRefresh ? '/api/groups?refresh=1' : '/api/groups';
     const data = await fetchJson(url);
-    renderGroups(data.groups, data.ready, data.orphanedMonitoredGroups || []);
-    return data.groups;
+    cachedAdminGroups = data.groups || [];
+    rememberGroupNames(cachedAdminGroups, []);
+    renderGroupFilterOptions();
+    renderGroups(cachedAdminGroups, data.ready, data.orphanedMonitoredGroups || []);
+    return cachedAdminGroups;
   } catch (error) {
     groupsNotice.classList.remove('hidden');
     groupsNotice.textContent = `${error.message} Click Refresh to try again.`;
     return [];
   }
+}
+
+async function loadAllLogEntries() {
+  const data = await fetchJson('/api/logs?limit=100');
+  rememberGroupNames([], data.entries);
+  renderGroupFilterOptions();
+  return data.entries;
 }
 
 async function loadLogs() {
@@ -374,13 +388,10 @@ async function saveRules() {
 }
 
 async function refreshAll() {
-  const [status, entries] = await Promise.all([
-    loadStatus(),
-    loadLogs(),
-    loadGroups(),
-  ]);
-
-  updateGroupFilter([], entries);
+  const status = await loadStatus();
+  await loadGroups();
+  await loadAllLogEntries();
+  await loadLogs();
   renderStatus(status);
 }
 
@@ -391,9 +402,11 @@ document.getElementById('refreshLogsBtn').addEventListener('click', loadLogs);
 document.getElementById('saveRulesBtn').addEventListener('click', () => {
   saveRules().catch((error) => alert(error.message));
 });
-groupFilter.addEventListener('change', loadLogs);
+groupFilter.addEventListener('change', () => {
+  loadLogs().catch((error) => alert(error.message));
+});
 
-Promise.all([refreshAll(), loadRules(), loadGroups()]).catch((error) => {
+Promise.all([refreshAll(), loadRules()]).catch((error) => {
   statusDot.classList.add('error');
   statusText.textContent = 'Dashboard offline';
   statusMeta.textContent = error.message;
