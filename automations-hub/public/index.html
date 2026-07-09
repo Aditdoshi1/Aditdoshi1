@@ -19,14 +19,9 @@
           <span>Control center</span>
         </div>
       </div>
-      <div class="sidebar-tools">
-        <button type="button" id="sidebarPin" class="sidebar-tool" title="Pin sidebar" aria-label="Pin sidebar">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 3H5v5l4.5 4.5L9 17l3 3 3-3-1.5-4.5L16 8V3z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
-        </button>
-        <button type="button" id="sidebarToggle" class="sidebar-tool" title="Collapse sidebar" aria-label="Toggle sidebar">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
-        </button>
-      </div>
+      <button type="button" id="sidebarPin" class="sidebar-pin" title="Pin sidebar" aria-label="Pin sidebar">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 3H5v5l4.5 4.5L9 17l3 3 3-3-1.5-4.5L16 8V3z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+      </button>
     </div>
     <nav class="sidebar-nav">
       <a href="/" class="sidebar-link active">
@@ -42,6 +37,11 @@
         <span class="sidebar-label">Automation 2</span>
       </a>
     </nav>
+    <div class="sidebar-footer">
+      <button type="button" id="sidebarToggle" class="sidebar-footer-btn" title="Expand sidebar" aria-label="Toggle sidebar">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+      </button>
+    </div>
   </aside>
 
   <div class="app-main">

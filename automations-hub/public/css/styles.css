@@ -86,13 +86,13 @@ h2 {
   border-right: 1px solid rgba(255, 255, 255, 0.06);
   display: flex;
   flex-direction: column;
-  padding: 0.65rem 0.5rem;
+  padding: 0.65rem 0.45rem;
   transition: width 0.22s ease;
   overflow: hidden;
   z-index: 20;
 }
 
-.sidebar:hover,
+.sidebar:not(.pinned):hover,
 .sidebar.pinned:not(.collapsed) {
   width: var(--sidebar-expanded);
 }
@@ -103,11 +103,11 @@ h2 {
 
 .sidebar-head {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 0.35rem;
-  padding: 0.35rem 0.4rem 0.85rem;
-  min-height: 52px;
+  padding: 0.25rem 0.35rem 0.65rem;
+  flex-shrink: 0;
 }
 
 .brand {
@@ -131,12 +131,15 @@ h2 {
 
 .brand-text {
   min-width: 0;
+  overflow: hidden;
+  max-width: 0;
   opacity: 0;
-  transition: opacity 0.15s ease;
+  transition: max-width 0.22s ease, opacity 0.15s ease;
 }
 
-.sidebar:hover .brand-text,
+.sidebar:not(.pinned):hover .brand-text,
 .sidebar.pinned:not(.collapsed) .brand-text {
+  max-width: 120px;
   opacity: 1;
 }
 
@@ -154,22 +157,7 @@ h2 {
   white-space: nowrap;
 }
 
-.sidebar-tools {
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.15s ease;
-}
-
-.sidebar:hover .sidebar-tools,
-.sidebar.pinned .sidebar-tools {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-.sidebar-tool {
+.sidebar-pin {
   width: 26px;
   height: 26px;
   border: none;
@@ -180,47 +168,60 @@ h2 {
   place-items: center;
   cursor: pointer;
   padding: 0;
+  flex-shrink: 0;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease, background 0.15s ease;
 }
 
-.sidebar-tool svg {
+.sidebar-pin svg {
   width: 14px;
   height: 14px;
 }
 
-.sidebar-tool:hover {
+.sidebar:not(.pinned):hover .sidebar-pin,
+.sidebar.pinned .sidebar-pin {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.sidebar-pin:hover {
   background: rgba(255, 255, 255, 0.12);
   color: #fff;
 }
 
-.sidebar-tool.active {
+.sidebar-pin.active {
   background: rgba(37, 99, 235, 0.35);
   color: #fff;
-}
-
-.sidebar.pinned #sidebarToggle {
-  display: grid;
-}
-
-#sidebarToggle {
-  display: none;
 }
 
 .sidebar-nav {
   display: grid;
   gap: 0.2rem;
+  flex: 1;
+  min-height: 0;
+  align-content: start;
 }
 
 .sidebar-link {
   display: flex;
   align-items: center;
-  gap: 0.65rem;
-  padding: 0.55rem 0.6rem;
+  gap: 0;
+  padding: 0.55rem;
   border-radius: 9px;
   color: var(--sidebar-text);
   text-decoration: none;
   font-size: 0.78rem;
   font-weight: 500;
   transition: background 0.15s ease, color 0.15s ease;
+  justify-content: center;
+}
+
+.sidebar:not(.pinned):hover .sidebar-link,
+.sidebar.pinned:not(.collapsed) .sidebar-link {
+  justify-content: flex-start;
+  gap: 0.65rem;
+  padding: 0.55rem 0.6rem;
 }
 
 .sidebar-link:hover {
@@ -234,21 +235,65 @@ h2 {
 }
 
 .sidebar-icon {
-  width: 1.25rem;
+  width: 1.35rem;
   text-align: center;
   flex-shrink: 0;
-  font-size: 0.95rem;
+  font-size: 1rem;
+  line-height: 1;
 }
 
 .sidebar-label {
   white-space: nowrap;
+  overflow: hidden;
+  max-width: 0;
   opacity: 0;
-  transition: opacity 0.15s ease;
+  transition: max-width 0.22s ease, opacity 0.15s ease;
 }
 
-.sidebar:hover .sidebar-label,
+.sidebar:not(.pinned):hover .sidebar-label,
 .sidebar.pinned:not(.collapsed) .sidebar-label {
+  max-width: 130px;
   opacity: 1;
+}
+
+.sidebar-footer {
+  flex-shrink: 0;
+  padding-top: 0.55rem;
+  margin-top: auto;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.sidebar-footer-btn {
+  width: 100%;
+  height: 32px;
+  border: none;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(248, 250, 252, 0.8);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.sidebar-footer-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+.sidebar-footer-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+
+.sidebar.pinned:not(.collapsed) .sidebar-footer-btn svg {
+  transform: rotate(0deg);
+}
+
+.sidebar.pinned.collapsed .sidebar-footer-btn svg,
+.sidebar:not(.pinned) .sidebar-footer-btn svg {
+  transform: rotate(180deg);
 }
 
 /* Main layout */
@@ -413,14 +458,14 @@ h2 {
 }
 
 .btn.icon-btn {
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   padding: 0;
 }
 
 .btn.icon-btn svg {
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
 }
 
 .btn.primary {
