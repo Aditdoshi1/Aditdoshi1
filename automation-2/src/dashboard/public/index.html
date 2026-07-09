@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Deal Scout</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header class="header">
+    <div class="header-left">
+      <h1>Deal Scout</h1>
+      <p class="subtitle">Free-source deal finder · Slickdeals RSS</p>
+    </div>
+    <div class="header-right">
+      <div id="statusCard" class="status-card">
+        <span id="statusDot" class="status-dot"></span>
+        <div>
+          <div id="statusText">Loading…</div>
+          <div id="statusMeta" class="status-meta"></div>
+        </div>
+      </div>
+      <button id="scanBtn" type="button" class="btn icon-btn primary" title="Run scan now" aria-label="Run scan">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.65 6.35A7.95 7.95 0 0 0 12 4a8 8 0 1 0 7.75 10h-2.1A6 6 0 1 1 12 6c1.66 0 3.14.67 4.22 1.78L13 11h7V4l-2.35 2.35z" fill="currentColor"/></svg>
+      </button>
+      <button id="pauseBtn" type="button" class="btn icon-btn ghost" title="Pause scheduler" aria-label="Pause">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1" fill="currentColor"/><rect x="14" y="5" width="4" height="14" rx="1" fill="currentColor"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <div id="pageFeedback" class="page-feedback"></div>
+
+  <main class="layout">
+    <section class="panel deals-panel">
+      <div class="panel-header">
+        <h2>Top deals</h2>
+        <div class="filters">
+          <select id="retailerFilter">
+            <option value="">All retailers</option>
+          </select>
+          <input id="keywordFilter" type="search" placeholder="Filter keyword">
+          <input id="minDropFilter" type="number" min="0" max="100" placeholder="Min drop %">
+          <button id="refreshDealsBtn" type="button" class="btn icon-btn ghost" title="Refresh list" aria-label="Refresh list">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.65 6.35A7.95 7.95 0 0 0 12 4a8 8 0 1 0 7.75 10h-2.1A6 6 0 1 1 12 6c1.66 0 3.14.67 4.22 1.78L13 11h7V4l-2.35 2.35z" fill="currentColor"/></svg>
+          </button>
+        </div>
+      </div>
+      <div id="dealsEmpty" class="empty-state hidden">No deals yet. Run a scan to fetch Slickdeals feeds.</div>
+      <div id="dealsList" class="deals-list"></div>
+    </section>
+
+    <section class="panel side-panel">
+      <div class="panel-header">
+        <h2>Watchlist</h2>
+      </div>
+      <form id="watchlistForm" class="stack-form">
+        <input id="watchlistUrl" type="url" placeholder="Amazon product URL" required>
+        <input id="watchlistLabel" type="text" placeholder="Label (optional)">
+        <button type="submit" class="btn primary">Add</button>
+      </form>
+      <p class="panel-help">Canopy free tier (optional) refreshes Amazon watchlist daily.</p>
+      <div id="watchlistItems" class="watchlist-items"></div>
+
+      <div class="panel-header spaced">
+        <h2>Keywords</h2>
+      </div>
+      <form id="keywordForm" class="stack-form inline">
+        <input id="keywordInput" type="text" placeholder="e.g. airpods, gpu" required>
+        <button type="submit" class="btn secondary">Add</button>
+      </form>
+      <div id="keywordItems" class="keyword-items"></div>
+    </section>
+  </main>
+
+  <script src="/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,23 @@
+name: Deal Scout
+dashboard:
+  port: 3001
+scheduler:
+  intervalMinutes: 120
+  enabled: true
+deals:
+  minDropPct: 10
+  minAbsoluteDrop: 5
+sources:
+  slickdeals:
+    enabled: true
+    feeds:
+      - popdeals
+      - frontpage
+  canopy:
+    enabled: false
+    maxWatchlistItems: 5
+    refreshIntervalHours: 24
+  mock:
+    enabled: false
+watchlist: []
+keywords: []
