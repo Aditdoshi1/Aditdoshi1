@@ -4,49 +4,77 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Automation Hub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/styles.css">
 </head>
-<body>
-  <header class="topbar">
-    <div>
-      <h1>Automation Hub</h1>
-      <p class="subtitle">Monitor and control your local automations from one place.</p>
+<body class="app-shell">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">⚡</div>
+      <div>
+        <strong>Automation Hub</strong>
+        <span>Control center</span>
+      </div>
     </div>
-    <nav class="nav">
-      <a href="/" class="nav-link active">Dashboard</a>
-      <a href="/whatsapp-guard.html" class="nav-link">WhatsApp Guard</a>
-      <a href="/placeholder.html" class="nav-link">Automation 2</a>
+    <nav class="sidebar-nav">
+      <a href="/" class="sidebar-link active">
+        <span class="sidebar-icon">📊</span>
+        Dashboard
+      </a>
+      <a href="/whatsapp-guard.html" class="sidebar-link">
+        <span class="sidebar-icon">💬</span>
+        WhatsApp Guard
+      </a>
+      <a href="/placeholder.html" class="sidebar-link">
+        <span class="sidebar-icon">🔧</span>
+        Automation 2
+      </a>
     </nav>
-  </header>
+  </aside>
 
-  <main class="container">
-    <section class="summary-grid" id="summaryGrid">
-      <div class="summary-card">
-        <span class="summary-label">Running</span>
-        <strong id="countRunning">0</strong>
+  <div class="app-main">
+    <header class="page-header">
+      <div>
+        <p class="eyebrow">Overview</p>
+        <h1>Automation Dashboard</h1>
+        <p class="subtitle">Monitor running automations and control them from one place.</p>
       </div>
-      <div class="summary-card">
-        <span class="summary-label">Paused</span>
-        <strong id="countPaused">0</strong>
-      </div>
-      <div class="summary-card">
-        <span class="summary-label">Stopped</span>
-        <strong id="countStopped">0</strong>
-      </div>
-      <div class="summary-card">
-        <span class="summary-label">Coming soon</span>
-        <strong id="countUnavailable">0</strong>
-      </div>
-    </section>
+      <button id="refreshBtn" class="btn secondary">
+        <span class="btn-icon">↻</span>
+        Refresh
+      </button>
+    </header>
 
-    <section class="panel">
-      <div class="panel-header">
-        <h2>Automations</h2>
-        <button id="refreshBtn" class="btn secondary">Refresh</button>
-      </div>
-      <div id="automationList" class="automation-list"></div>
-    </section>
-  </main>
+    <main class="page-content">
+      <section class="summary-grid" id="summaryGrid">
+        <div class="summary-card running">
+          <span class="summary-label">Running</span>
+          <strong id="countRunning">0</strong>
+        </div>
+        <div class="summary-card paused">
+          <span class="summary-label">Paused</span>
+          <strong id="countPaused">0</strong>
+        </div>
+        <div class="summary-card stopped">
+          <span class="summary-label">Stopped</span>
+          <strong id="countStopped">0</strong>
+        </div>
+        <div class="summary-card unavailable">
+          <span class="summary-label">Coming soon</span>
+          <strong id="countUnavailable">0</strong>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <h2>Your automations</h2>
+        </div>
+        <div id="automationList" class="automation-list"></div>
+      </section>
+    </main>
+  </div>
 
   <script src="/js/hub.js"></script>
   <script>

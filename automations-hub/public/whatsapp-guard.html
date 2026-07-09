@@ -4,47 +4,68 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>WhatsApp Spam Guard · Automation Hub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/styles.css">
 </head>
-<body>
-  <header class="topbar">
-    <div>
-      <h1>WhatsApp Spam Guard</h1>
-      <p class="subtitle">Embedded dashboard and controls for the spam moderation bot.</p>
+<body class="app-shell guard-page">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">⚡</div>
+      <div>
+        <strong>Automation Hub</strong>
+        <span>Control center</span>
+      </div>
     </div>
-    <nav class="nav">
-      <a href="/" class="nav-link">Dashboard</a>
-      <a href="/whatsapp-guard.html" class="nav-link active">WhatsApp Guard</a>
-      <a href="/placeholder.html" class="nav-link">Automation 2</a>
+    <nav class="sidebar-nav">
+      <a href="/" class="sidebar-link">
+        <span class="sidebar-icon">📊</span>
+        Dashboard
+      </a>
+      <a href="/whatsapp-guard.html" class="sidebar-link active">
+        <span class="sidebar-icon">💬</span>
+        WhatsApp Guard
+      </a>
+      <a href="/placeholder.html" class="sidebar-link">
+        <span class="sidebar-icon">🔧</span>
+        Automation 2
+      </a>
     </nav>
-  </header>
+  </aside>
 
-  <main class="container">
-    <section class="panel compact-controls">
-      <div class="panel-header">
-        <h2>Automation Controls</h2>
+  <div class="app-main">
+    <header class="control-toolbar">
+      <div class="toolbar-left">
+        <div class="toolbar-title">
+          <span class="toolbar-icon">💬</span>
+          <div>
+            <h1>WhatsApp Spam Guard</h1>
+            <p class="subtitle">Group spam moderation bot</p>
+          </div>
+        </div>
         <span id="guardStatusBadge" class="status-badge stopped">Stopped</span>
       </div>
-      <div id="guardControls" class="control-row"></div>
-      <p class="panel-help">
-        Start the bot here, then use the dashboard below to configure groups and spam rules.
-      </p>
-    </section>
 
-    <section class="panel embed-panel">
-      <div class="panel-header">
-        <h2>Spam Guard Dashboard</h2>
-        <a id="openDashboardLink" href="http://127.0.0.1:3000" target="_blank" class="btn secondary">Open in new tab</a>
+      <div id="guardControls" class="toolbar-actions"></div>
+
+      <div class="toolbar-right">
+        <a id="openDashboardLink" href="http://127.0.0.1:3000" target="_blank" class="btn ghost">
+          Open in new tab ↗
+        </a>
       </div>
+    </header>
+
+    <main class="embed-shell">
+      <div id="embedNotice" class="embed-notice hidden"></div>
       <iframe
         id="guardFrame"
         title="WhatsApp Spam Guard Dashboard"
         src="about:blank"
         class="embed-frame"
       ></iframe>
-      <p id="embedNotice" class="notice hidden"></p>
-    </section>
-  </main>
+    </main>
+  </div>
 
   <script src="/js/hub.js"></script>
   <script>

@@ -20,25 +20,25 @@ function renderControls(container, automation) {
 
   const startBtn = document.createElement('button');
   startBtn.className = 'btn primary';
-  startBtn.textContent = 'Start';
+  startBtn.innerHTML = '<span class="btn-icon">▶</span> Start';
   startBtn.disabled = !automation.canStart;
   startBtn.onclick = () => controlAutomation(automation.id, 'start');
 
   const pauseBtn = document.createElement('button');
   pauseBtn.className = 'btn warning';
-  pauseBtn.textContent = 'Pause';
+  pauseBtn.innerHTML = '<span class="btn-icon">⏸</span> Pause';
   pauseBtn.disabled = !automation.canPause;
   pauseBtn.onclick = () => controlAutomation(automation.id, 'pause');
 
   const resumeBtn = document.createElement('button');
   resumeBtn.className = 'btn primary';
-  resumeBtn.textContent = 'Resume';
+  resumeBtn.innerHTML = '<span class="btn-icon">⏵</span> Resume';
   resumeBtn.disabled = !automation.canResume;
   resumeBtn.onclick = () => controlAutomation(automation.id, 'resume');
 
   const stopBtn = document.createElement('button');
   stopBtn.className = 'btn danger';
-  stopBtn.textContent = 'Stop';
+  stopBtn.innerHTML = '<span class="btn-icon">■</span> Stop';
   stopBtn.disabled = !automation.canStop;
   stopBtn.onclick = () => controlAutomation(automation.id, 'stop');
 
@@ -47,7 +47,8 @@ function renderControls(container, automation) {
   openBtn.textContent = 'Open page';
   openBtn.href = automation.detailPath || '/';
   if (automation.type === 'placeholder') {
-    openBtn.disabled = true;
+    openBtn.classList.add('disabled');
+    openBtn.removeAttribute('href');
   }
 
   container.append(startBtn, pauseBtn, resumeBtn, stopBtn, openBtn);
