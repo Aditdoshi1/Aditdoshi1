@@ -3,6 +3,7 @@ const { addKeywords } = require('./utils/config');
 const { extractLearnableKeywords } = require('./utils/learnKeywords');
 const { emitConfigChange } = require('./botState');
 const { logInfo } = require('./utils/logger');
+const { deleteMessageForEveryone } = require('./utils/deleteMessage');
 
 function isSpamCommand(text, command) {
   const normalized = (text || '').trim().toLowerCase();
@@ -102,7 +103,7 @@ async function handleManualSpamCommand({ client, message, chat, config, moderato
 
   if (config.commands.deleteCommandMessage !== false) {
     try {
-      await message.delete(true);
+      await deleteMessageForEveryone(client, message, chat);
     } catch {
       // Non-fatal if command message cannot be deleted.
     }

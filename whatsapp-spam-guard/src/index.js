@@ -213,14 +213,14 @@ async function handleMessage(client, message) {
     return;
   }
 
-  if (await isGroupAdmin(message, chat, client)) {
-    return;
-  }
-
   const text = message.body || '';
   const classification = classifySpam(text, config.rules);
 
   if (!classification.isSpam) {
+    return;
+  }
+
+  if (await isGroupAdmin(message, chat, client)) {
     return;
   }
 

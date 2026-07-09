@@ -1,5 +1,6 @@
 const { logModerationAction, logError } = require('./utils/logger');
 const { normalizeId, resolveParticipantIds } = require('./utils/isAdmin');
+const { deleteMessageForEveryone } = require('./utils/deleteMessage');
 
 class Moderator {
   constructor(config) {
@@ -89,7 +90,7 @@ class Moderator {
 
     if (this.config.moderation.deleteMessage) {
       try {
-        await message.delete(true);
+        await deleteMessageForEveryone(client, message, chat);
         results.deleted = true;
       } catch (error) {
         logError('Failed to delete message', error);
