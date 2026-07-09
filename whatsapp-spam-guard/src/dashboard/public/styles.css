@@ -44,6 +44,22 @@ body {
   box-shadow: 0 4px 20px var(--header-shadow);
 }
 
+.header > div:first-child {
+  flex: 1;
+  min-width: 0;
+}
+
+.status-card {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  background: var(--input-bg);
+  border: 1px solid var(--panel-border);
+  flex-shrink: 0;
+}
+
 h1,
 h2 {
   margin: 0;
@@ -80,22 +96,23 @@ h2 {
   align-items: center;
   gap: 1rem;
   margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.panel-header h2 {
+  flex: 1;
+  min-width: 0;
+}
+
+.panel-header .btn {
+  flex-shrink: 0;
 }
 
 .filters {
   display: flex;
   gap: 0.75rem;
   align-items: center;
-}
-
-.status-card {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem 1rem;
-  border-radius: 12px;
-  background: var(--input-bg);
-  border: 1px solid var(--panel-border);
+  flex-wrap: wrap;
 }
 
 .status-dot {
@@ -122,6 +139,8 @@ h2 {
   padding: 0.55rem 0.9rem;
   cursor: pointer;
   font-weight: 600;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .btn.secondary {
@@ -222,10 +241,14 @@ select {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
+  flex: 1;
+  min-width: 0;
 }
 
 .group-name {
   font-weight: 600;
+  line-height: 1.3;
+  word-break: break-word;
 }
 
 .group-id {
@@ -234,10 +257,17 @@ select {
   word-break: break-all;
 }
 
+.group-count {
+  color: var(--muted);
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
 .toggle {
   position: relative;
   width: 48px;
   height: 28px;
+  flex-shrink: 0;
 }
 
 .toggle input {
@@ -354,12 +384,12 @@ th {
 
 @media (min-width: 1100px) {
   .layout {
-    grid-template-columns: 360px 360px 1fr;
+    grid-template-columns: minmax(380px, 1fr) minmax(380px, 1fr) minmax(420px, 1.4fr);
     align-items: start;
   }
 
   .layout.connected {
-    grid-template-columns: 360px 360px 1fr;
+    grid-template-columns: minmax(380px, 1fr) minmax(380px, 1fr) minmax(420px, 1.4fr);
   }
 
   .connect-panel,

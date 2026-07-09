@@ -117,7 +117,8 @@ function renderGroups(groups, ready) {
     item.innerHTML = `
       <div class="group-meta">
         <div class="group-name">${escapeHtml(group.name)}</div>
-        <div class="group-id">${escapeHtml(group.id)} · ${group.participantCount} members</div>
+        <div class="group-id">${escapeHtml(group.id)}</div>
+        <div class="group-count">${group.participantCount} members</div>
       </div>
       <label class="toggle" title="Monitor this group">
         <input type="checkbox" ${group.monitored ? 'checked' : ''}>
