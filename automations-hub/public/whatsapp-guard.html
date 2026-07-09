@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WhatsApp Spam Guard · Automation Hub</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <h1>WhatsApp Spam Guard</h1>
+      <p class="subtitle">Embedded dashboard and controls for the spam moderation bot.</p>
+    </div>
+    <nav class="nav">
+      <a href="/" class="nav-link">Dashboard</a>
+      <a href="/whatsapp-guard.html" class="nav-link active">WhatsApp Guard</a>
+      <a href="/placeholder.html" class="nav-link">Automation 2</a>
+    </nav>
+  </header>
+
+  <main class="container">
+    <section class="panel compact-controls">
+      <div class="panel-header">
+        <h2>Automation Controls</h2>
+        <span id="guardStatusBadge" class="status-badge stopped">Stopped</span>
+      </div>
+      <div id="guardControls" class="control-row"></div>
+      <p class="panel-help">
+        Start the bot here, then use the dashboard below to configure groups and spam rules.
+      </p>
+    </section>
+
+    <section class="panel embed-panel">
+      <div class="panel-header">
+        <h2>Spam Guard Dashboard</h2>
+        <a id="openDashboardLink" href="http://127.0.0.1:3000" target="_blank" class="btn secondary">Open in new tab</a>
+      </div>
+      <iframe
+        id="guardFrame"
+        title="WhatsApp Spam Guard Dashboard"
+        src="about:blank"
+        class="embed-frame"
+      ></iframe>
+      <p id="embedNotice" class="notice hidden"></p>
+    </section>
+  </main>
+
+  <script src="/js/hub.js"></script>
+  <script>
+    initHubPage({ mode: 'whatsapp-guard' });
+  </script>
+</body>
+</html>

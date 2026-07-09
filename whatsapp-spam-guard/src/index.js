@@ -10,6 +10,7 @@ const Moderator = require('./moderator');
 const { startDashboard } = require('./dashboard/server');
 const { handleManualSpamCommand } = require('./manualModeration');
 const { runClientTask } = require('./utils/clientQueue');
+const { isAutomationPaused } = require('./utils/pause');
 
 let reconnectTimer = null;
 let activeClient = null;
@@ -176,6 +177,10 @@ function attachClientEvents(client, config) {
 }
 
 async function handleMessage(client, message) {
+  if (isAutomationPaused()) {
+    return;
+  }
+
   const config = botState.config;
 
   if (!config) {
