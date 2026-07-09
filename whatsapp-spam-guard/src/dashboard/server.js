@@ -7,6 +7,13 @@ const { loadConfig, updateMonitoredGroups, updateSettings } = require('../utils/
 const { readModerationLogs } = require('../utils/logReader');
 const { normalizeId, isBotGroupAdmin } = require('../utils/isAdmin');
 const { logInfo, logError } = require('../utils/logger');
+const {
+  getDashboardHost,
+  getDashboardPort,
+  getDashboardUrls,
+  getPrimaryDashboardUrl,
+  isWSL,
+} = require('../utils/dashboardUrl');
 const { runClientTask } = require('../utils/clientQueue');
 const { getCachedGroups, setCachedGroups, clearGroupCache, CACHE_TTL_MS } = require('../utils/groupCache');
 
@@ -337,12 +344,20 @@ function createDashboardApp() {
 
 function startDashboard(config) {
   const app = createDashboardApp();
-  const port = Number(process.env.DASHBOARD_PORT || config.dashboard?.port || 3000);
-  const host = process.env.DASHBOARD_HOST || '127.0.0.1';
+  const port = getDashboardPort(config);
+  const host = getDashboardHost(config);
+  const urls = getDashboardUrls(config);
 
   app.listen(port, host, () => {
-    logInfo(`Dashboard available at http://${host}:${port}`);
-    logInfo(`Also try http://127.0.0.1:${port} if localhost fails`);
+    logInfo(`Dashboard available at ${getPrimaryDashboardUrl(config)}`);
+    if (host === '0.0.0.0') {
+      logInfo(`Listening on all interfaces (port ${port})`);
+    }
+    if (isWSL()) {
+      logInfo('WSL: open the dashboard from Windows using one of these URLs:', { urls });
+    } else {
+      logInfo('Open in browser, or run: npm run open-dashboard');
+    }
   }).on('error', (error) => {
     if (error.code === 'EADDRINUSE') {
       logError(`Port ${port} is already in use. Stop the other app or set DASHBOARD_PORT=3001`, error);

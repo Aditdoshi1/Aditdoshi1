@@ -10,7 +10,7 @@ cd "$ROOT_DIR"
 
 if "${TMUX[@]}" has-session -t "=$SESSION_NAME" 2>/dev/null; then
   echo "Bot session already running: $SESSION_NAME"
-  echo "Dashboard: http://localhost:3000"
+  OPEN_DASHBOARD=1 node scripts/open-dashboard.js || true
   exit 0
 fi
 
@@ -23,14 +23,14 @@ fi
 "${TMUX[@]}" new-session -d -s "$SESSION_NAME" -c "$ROOT_DIR" -- "${SHELL:-bash}" -l
 "${TMUX[@]}" send-keys -t "$SESSION_NAME:0.0" "cd \"$ROOT_DIR\" && npm start" C-m
 
-sleep 3
-
-if curl -sf http://localhost:3000/api/status >/dev/null 2>&1; then
+echo "Waiting for dashboard..."
+if node scripts/wait-for-dashboard.js; then
   echo "WhatsApp Spam Guard started in background."
+  OPEN_DASHBOARD=1 node scripts/open-dashboard.js || true
 else
   echo "Bot is starting in background (dashboard may take a few seconds)."
+  echo "Run: npm run open-dashboard"
 fi
 
 echo "Session: $SESSION_NAME"
-echo "Dashboard: http://localhost:3000"
 echo "View logs: tmux -f $TMUX_CONF attach-session -t $SESSION_NAME"

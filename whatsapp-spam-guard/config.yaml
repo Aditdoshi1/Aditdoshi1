@@ -21,3 +21,4 @@ moderation:
   rateLimitSeconds: 60
 dashboard:
   port: 3000
+  # host: 127.0.0.1   # default on Windows/Mac. WSL auto-uses 0.0.0.0

@@ -2,7 +2,12 @@ const http = require('http');
 const { execSync } = require('child_process');
 const path = require('path');
 
-const port = Number(process.env.DASHBOARD_PORT || 3000);
+const { loadConfig } = require('../src/utils/config');
+const { getDashboardPort, getDashboardUrls, isWSL } = require('../src/utils/dashboardUrl');
+
+const config = loadConfig();
+const port = getDashboardPort(config);
+const urls = getDashboardUrls(config);
 const root = path.join(__dirname, '..');
 
 console.log('WhatsApp Spam Guard — local diagnose');
@@ -34,8 +39,8 @@ function checkProcess() {
   }
 }
 
-function checkPort(callback) {
-  const req = http.get(`http://127.0.0.1:${port}/api/status`, (res) => {
+function checkPort(url, callback) {
+  const req = http.get(`${url}/api/status`, (res) => {
     let body = '';
     res.on('data', (chunk) => { body += chunk; });
     res.on('end', () => {
@@ -54,7 +59,7 @@ function checkPort(callback) {
   });
 
   req.on('error', (error) => {
-    console.log(`Dashboard NOT reachable at http://127.0.0.1:${port}`);
+    console.log(`Dashboard NOT reachable at ${url}`);
     console.log(`Reason: ${error.message}`);
     callback(false);
   });
@@ -68,20 +73,40 @@ function checkPort(callback) {
 
 checkProcess();
 console.log('');
-checkPort((ok) => {
+if (isWSL()) {
+  console.log('WSL detected — try these URLs from Windows:');
+  urls.forEach((url) => console.log('  ' + url));
   console.log('');
-  if (ok) {
-    console.log('OK: Open http://127.0.0.1:' + port);
-  } else {
+}
+
+function tryUrls(index) {
+  if (index >= urls.length) {
+    console.log('');
     console.log('FIX: In this folder run:');
     console.log('  npm install');
     console.log('  npm start');
     console.log('');
-    console.log('Keep that terminal open. Then open http://127.0.0.1:' + port);
+    console.log('Keep that terminal open, then run: npm run open-dashboard');
     if (process.platform === 'win32') {
       console.log('Windows background: npm run start:win');
     } else {
       console.log('Mac/Linux background: npm run start:bg');
     }
+    console.log('');
+    console.log('If port 3000 is busy: set DASHBOARD_PORT=3001 && npm start');
+    return;
   }
-});
+
+  checkPort(urls[index], (ok) => {
+    if (ok) {
+      console.log('');
+      console.log('OK: Open ' + urls[index]);
+      console.log('Or run: npm run open-dashboard');
+      return;
+    }
+
+    tryUrls(index + 1);
+  });
+}
+
+tryUrls(0);
