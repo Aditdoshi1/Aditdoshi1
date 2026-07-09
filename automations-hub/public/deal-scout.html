@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>WhatsApp Spam Guard · Automation Hub</title>
+  <title>Deal Scout · Automation Hub</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -25,11 +25,11 @@
         <span class="sidebar-icon">📊</span>
         <span class="sidebar-label">Dashboard</span>
       </a>
-      <a href="/whatsapp-guard.html" class="sidebar-link active">
+      <a href="/whatsapp-guard.html" class="sidebar-link">
         <span class="sidebar-icon">💬</span>
         <span class="sidebar-label">WhatsApp Guard</span>
       </a>
-      <a href="/deal-scout.html" class="sidebar-link">
+      <a href="/deal-scout.html" class="sidebar-link active">
         <span class="sidebar-icon">🏷️</span>
         <span class="sidebar-label">Deal Scout</span>
       </a>
@@ -47,38 +47,31 @@
   <div class="app-main">
     <header class="control-toolbar">
       <div class="toolbar-left">
-        <span class="toolbar-icon">💬</span>
+        <span class="toolbar-icon">🏷️</span>
         <div class="toolbar-title">
-          <h1>WhatsApp Guard</h1>
-          <p class="toolbar-subtitle">Group spam moderation</p>
+          <h1>Deal Scout</h1>
+          <p class="toolbar-subtitle">Free-source deal finder</p>
         </div>
-        <span id="guardStatusBadge" class="status-badge stopped">Stopped</span>
+        <span id="dealScoutStatusBadge" class="status-badge stopped">Stopped</span>
       </div>
 
-      <div id="guardControls" class="toolbar-actions"></div>
+      <div id="dealScoutControls" class="toolbar-actions"></div>
 
       <div class="toolbar-right">
-        <div id="botStatusCard" class="bot-status-card">
-          <span id="botStatusDot" class="bot-status-dot"></span>
-          <div class="bot-status-copy">
-            <div id="botStatusText">Bot offline</div>
-            <div id="botStatusMeta" class="bot-status-meta"></div>
-          </div>
-        </div>
-        <button id="guardRefreshBtn" type="button" class="btn icon-btn ghost" title="Refresh status" aria-label="Refresh status">
+        <button id="dealScoutRefreshBtn" type="button" class="btn icon-btn ghost" title="Refresh status" aria-label="Refresh status">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.65 6.35A7.95 7.95 0 0 0 12 4a8 8 0 1 0 7.75 10h-2.1A6 6 0 1 1 12 6c1.66 0 3.14.67 4.22 1.78L13 11h7V4l-2.35 2.35z" fill="currentColor"/></svg>
         </button>
-        <a id="openDashboardLink" href="http://127.0.0.1:3000" target="_blank" class="btn icon-btn ghost" title="Pop out" aria-label="Pop out">
+        <a id="openDealScoutLink" href="http://127.0.0.1:3001" target="_blank" class="btn icon-btn ghost" title="Pop out" aria-label="Pop out">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3h7v7h-2V6.41l-9.29 9.3-1.42-1.42 9.3-9.29H14V3zM5 5h6v2H7v10h10v-4h2v6H5V5z" fill="currentColor"/></svg>
         </a>
       </div>
     </header>
 
     <main class="embed-shell">
-      <div id="embedNotice" class="embed-notice hidden"></div>
+      <div id="dealScoutNotice" class="embed-notice hidden"></div>
       <iframe
-        id="guardFrame"
-        title="WhatsApp Spam Guard Dashboard"
+        id="dealScoutFrame"
+        title="Deal Scout Dashboard"
         src="about:blank"
         class="embed-frame"
       ></iframe>
@@ -91,7 +84,7 @@
   <script src="/js/sidebar.js"></script>
   <script src="/js/hub.js"></script>
   <script>
-    initHubPage({ mode: 'whatsapp-guard' });
+    initHubPage({ mode: 'deal-scout' });
   </script>
 </body>
 </html>

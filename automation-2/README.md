@@ -1,18 +1,18 @@
-# Automation 2 (side development)
+# Deal Scout (Automation 2)
 
-Build the second automation here **without touching WhatsApp Spam Guard**.
+Find deals and price drops from **free data sources** — primarily Slickdeals RSS — with an optional Amazon watchlist via Canopy's free tier.
 
-## Parallel setup
+WhatsApp Spam Guard is **not modified** by this project.
+
+## Services
 
 | Service | Folder | Port | Hub page |
 |---------|--------|------|----------|
 | Automation Hub | `automations-hub/` | 8080 | — |
 | WhatsApp Guard | `whatsapp-spam-guard/` | 3000 | `/whatsapp-guard.html` |
-| **Automation 2 (dev)** | `automation-2/` | **3001** | `/placeholder.html` (until merged) |
+| **Deal Scout** | `automation-2/` | **3001** | `/deal-scout.html` |
 
-Keep WhatsApp Guard running as usual. This project uses a **different port** so nothing conflicts.
-
-## Run Automation 2 dev server
+## Quick start
 
 ```bash
 cd automation-2
@@ -20,31 +20,70 @@ npm install
 npm start
 ```
 
-Open **http://127.0.0.1:3001** for the dev dashboard.
+Open **http://127.0.0.1:3001** for the dashboard.
 
-WhatsApp Guard and the hub are **not** modified by this folder.
+Optional: copy `config.example.yaml` to `config.yaml` to customize feeds, thresholds, and scheduler interval.
+
+## Data sources (v1)
+
+| Source | API key | Notes |
+|--------|---------|-------|
+| **Slickdeals RSS** | None | Primary — popdeals + frontpage feeds |
+| **Keyword RSS** | None | Add keywords in UI or `config.yaml` |
+| **Canopy Amazon** | `CANOPY_API_KEY` in `.env` | Optional watchlist (100 free req/mo) |
+| **Reddit r/deals** | `REDDIT_CLIENT_ID` / `REDDIT_CLIENT_SECRET` | Optional phase-2 source |
+
+Amazon PA-API and Walmart Affiliate are deferred (see `src/sources/affiliateApis.js`).
+
+## Configuration
+
+`config.example.yaml`:
+
+- `scheduler.intervalMinutes` — default 120 (RSS-friendly)
+- `deals.minDropPct` — flag price drops at or above this % (default 10)
+- `deals.minAbsoluteDrop` — minimum dollar drop (default $5)
+- `sources.slickdeals.feeds` — `popdeals`, `frontpage`
+- `sources.canopy.enabled` — set `true` after Canopy signup
+
+Secrets in `.env` (gitignored):
+
+```
+CANOPY_API_KEY=
+REDDIT_CLIENT_ID=
+REDDIT_CLIENT_SECRET=
+REDDIT_USER_AGENT=DealScout/1.0
+```
 
 ## Project layout
 
 ```
 automation-2/
-├── config.example.yaml   # copy to config.yaml when needed
+├── config.example.yaml
+├── data/                 # SQLite (gitignored)
 ├── src/
-│   ├── index.js          # entry point — add your automation here
+│   ├── index.js
 │   ├── config.js
-│   └── dashboard/        # dev UI (port 3001)
+│   ├── db/
+│   ├── engine/
+│   ├── sources/
+│   ├── utils/
+│   └── dashboard/
 └── README.md
 ```
 
-## When ready to merge into the hub
+## API endpoints
 
-1. Finish automation logic and dashboard under `automation-2/`
-2. In `automations-hub/src/automations.js`, replace the placeholder entry with a real `process` automation (same pattern as WhatsApp Guard)
-3. Replace `automations-hub/public/placeholder.html` with a real hub page (or rename to match)
-4. Test Start / Stop / Pause from the hub without breaking WhatsApp Guard
+- `GET /api/status` — scheduler state, stats, sources
+- `GET /api/deals?retailer=&minDrop=&keyword=` — filtered deals
+- `POST /api/scan` — run scan now
+- `GET/POST/DELETE /api/watchlist` — Amazon watchlist
+- `GET/POST/DELETE /api/keywords` — Slickdeals keyword feeds
+- `POST /api/pause` / `POST /api/resume` — pause scheduler (`.paused` file)
 
-Do **not** change `whatsapp-spam-guard/` when merging — only hub registry + new hub page.
+## Hub integration
+
+Deal Scout is registered in `automations-hub/src/automations.js` and embedded at `/deal-scout.html`. Start/stop/pause from the hub without affecting WhatsApp Guard.
 
 ## Branch
 
-Develop on `cursor/automation-2-bb4a`. WhatsApp work stays on `cursor/automations-hub-bb4a` / `cursor/whatsapp-spam-guard-bb4a`.
+Develop on `cursor/automation-2-bb4a`.

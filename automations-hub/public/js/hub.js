@@ -1,4 +1,5 @@
 const AUTOMATION_ID = 'whatsapp-spam-guard';
+const DEAL_SCOUT_ID = 'deal-scout';
 let lastEmbedUrl = null;
 let lastControlSnapshot = null;
 let controlBusy = false;
@@ -207,6 +208,8 @@ async function controlAutomation(id, action) {
     if (document.getElementById('guardControls')) {
       const botStatus = await fetchBotStatus();
       renderWhatsAppGuardPage(automations, botStatus);
+    } else if (document.getElementById('dealScoutControls')) {
+      renderDealScoutPage(automations);
     } else {
       renderDashboard(automations);
     }
@@ -331,28 +334,33 @@ async function fetchBotStatus() {
   }
 }
 
-function renderWhatsAppGuardPage(automations, botStatus = null) {
-  const automation = automations.find((entry) => entry.id === AUTOMATION_ID);
+function renderAutomationEmbedPage(automations, {
+  automationId,
+  badgeId,
+  controlsId,
+  frameId,
+  noticeId,
+  openLinkId,
+}) {
+  const automation = automations.find((entry) => entry.id === automationId);
   if (!automation) {
     return;
   }
 
-  const badge = document.getElementById('guardStatusBadge');
+  const badge = document.getElementById(badgeId);
   badge.className = `status-badge ${statusClass(automation.status)}`;
   badge.textContent = automation.statusLabel;
 
-  renderBotConnectionStatus(automation, botStatus);
-
-  const controls = document.getElementById('guardControls');
+  const controls = document.getElementById(controlsId);
   const snapshot = controlSnapshot(automation);
   if (snapshot !== lastControlSnapshot) {
     renderControls(controls, automation, { showOpenPage: false });
     lastControlSnapshot = snapshot;
   }
 
-  const frame = document.getElementById('guardFrame');
-  const notice = document.getElementById('embedNotice');
-  const openLink = document.getElementById('openDashboardLink');
+  const frame = document.getElementById(frameId);
+  const notice = document.getElementById(noticeId);
+  const openLink = document.getElementById(openLinkId);
 
   if (automation.dashboardUrl) {
     openLink.href = automation.dashboardUrl;
@@ -363,13 +371,13 @@ function renderWhatsAppGuardPage(automations, botStatus = null) {
     notice.classList.add('hidden');
   } else if (automation.status === 'starting') {
     setEmbedFrame(frame, 'about:blank');
-    notice.textContent = 'Starting bot… dashboard loads in a few seconds.';
+    notice.textContent = 'Starting… dashboard loads in a few seconds.';
     notice.classList.remove('hidden');
   } else if (automation.status === 'paused') {
     if (automation.dashboardUrl && lastEmbedUrl !== withEmbedParam(automation.dashboardUrl)) {
       setEmbedFrame(frame, automation.dashboardUrl);
     }
-    notice.textContent = 'Paused — moderation off, dashboard stays open.';
+    notice.textContent = 'Paused — scheduled scans are off, dashboard stays open.';
     notice.classList.remove('hidden');
   } else {
     setEmbedFrame(frame, 'about:blank');
@@ -379,9 +387,39 @@ function renderWhatsAppGuardPage(automations, botStatus = null) {
   }
 }
 
+function renderWhatsAppGuardPage(automations, botStatus = null) {
+  const automation = automations.find((entry) => entry.id === AUTOMATION_ID);
+  if (!automation) {
+    return;
+  }
+
+  renderBotConnectionStatus(automation, botStatus);
+
+  renderAutomationEmbedPage(automations, {
+    automationId: AUTOMATION_ID,
+    badgeId: 'guardStatusBadge',
+    controlsId: 'guardControls',
+    frameId: 'guardFrame',
+    noticeId: 'embedNotice',
+    openLinkId: 'openDashboardLink',
+  });
+}
+
+function renderDealScoutPage(automations) {
+  renderAutomationEmbedPage(automations, {
+    automationId: DEAL_SCOUT_ID,
+    badgeId: 'dealScoutStatusBadge',
+    controlsId: 'dealScoutControls',
+    frameId: 'dealScoutFrame',
+    noticeId: 'dealScoutNotice',
+    openLinkId: 'openDealScoutLink',
+  });
+}
+
 function initHubPage({ mode }) {
   const refreshBtn = document.getElementById('refreshBtn');
   const guardRefreshBtn = document.getElementById('guardRefreshBtn');
+  const dealScoutRefreshBtn = document.getElementById('dealScoutRefreshBtn');
 
   async function tick(options = {}) {
     const { quiet = false } = options;
@@ -398,6 +436,8 @@ function initHubPage({ mode }) {
       } else if (mode === 'whatsapp-guard') {
         const botStatus = await fetchBotStatus();
         renderWhatsAppGuardPage(automations, botStatus);
+      } else if (mode === 'deal-scout') {
+        renderDealScoutPage(automations);
       }
 
       if (!quiet) {
@@ -417,6 +457,10 @@ function initHubPage({ mode }) {
 
   if (guardRefreshBtn) {
     guardRefreshBtn.addEventListener('click', () => tick());
+  }
+
+  if (dealScoutRefreshBtn) {
+    dealScoutRefreshBtn.addEventListener('click', () => tick());
   }
 
   tick({ quiet: true });

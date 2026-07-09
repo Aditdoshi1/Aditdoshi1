@@ -2,6 +2,7 @@ const path = require('path');
 
 const ROOT = path.join(__dirname, '..', '..');
 const WHATSAPP_GUARD_DIR = path.join(ROOT, 'whatsapp-spam-guard');
+const DEAL_SCOUT_DIR = path.join(ROOT, 'automation-2');
 
 const automations = [
   {
@@ -18,12 +19,17 @@ const automations = [
     icon: '💬',
   },
   {
-    id: 'automation-placeholder-2',
-    name: 'Automation 2',
-    description: 'Placeholder for your next automation. Configuration coming soon.',
-    type: 'placeholder',
-    detailPath: '/placeholder.html',
-    icon: '🔧',
+    id: 'deal-scout',
+    name: 'Deal Scout',
+    description: 'Finds deals and price drops from Slickdeals RSS and optional free-tier product APIs.',
+    type: 'process',
+    cwd: DEAL_SCOUT_DIR,
+    command: process.platform === 'win32' ? 'node.exe' : 'node',
+    args: ['src/index.js'],
+    pauseFile: path.join(DEAL_SCOUT_DIR, '.paused'),
+    dashboardUrl: 'http://127.0.0.1:3001',
+    detailPath: '/deal-scout.html',
+    icon: '🏷️',
   },
 ];
 
